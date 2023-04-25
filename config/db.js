@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+
 const connectDB = async () => {
     // Connect to MongoDB
     try {
@@ -14,3 +15,4 @@ const connectDB = async () => {
 }
 // Export the function so that it can be used in other files
 module.exports = connectDB
+
