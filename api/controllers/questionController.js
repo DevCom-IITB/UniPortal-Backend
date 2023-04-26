@@ -1,5 +1,4 @@
-const asyncHandler = require('express-async-handler')
-
+const asyncHandler = require('express-async-handler') 
 
 // import the models
 

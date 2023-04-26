@@ -14,7 +14,7 @@ const QuestionSchema = mongoose.Schema({
     asked_At : {type : Date, default : Date.now },
     subject : {type : String, length : 30 }, //didn't get maxLenght arg
     action : {type : Boolean, default : true},
-    comments :[{
+    comments :[{ 
         id : mongoose.Schema.Types.ObjectId,
         user_ID : Number,
         body : String,
