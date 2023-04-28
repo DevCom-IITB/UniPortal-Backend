@@ -10,7 +10,7 @@ const commentSchema = mongoose.Schema(
 )
 
 
-//answer schema
+//answer schema..
 const AnswerSchema = mongoose.Schema(
   {
     id: mongoose.Schema.Types.ObjectId,
