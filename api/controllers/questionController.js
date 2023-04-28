@@ -1,4 +1,4 @@
-const asyncHandler = require('express-async-handler') 
+const asyncHandler = require('express-async-handler')  // the function of async handler here is to handle errors in async functions. https://www.npmjs.com/package/express-async-handler
 
 // import the models
 
@@ -8,10 +8,14 @@ const questionModel = require('../models/questionModel')
 //-------------------------------------------------------------------------------------------------------------------------------------
 
 //post questions
-const postQuestion = async (req, res) => {
+const postQuestion = asyncHandler(async (req, res) => {
+    if(!req.body.user_ID || !req.body.body){
+        res.status(400)
+        throw new Error('Please fill all the fields')
+    }
     const question = new questionModel({
+        user_ID: req.body.user_ID,
         body: req.body.body,
-        subject: req.body.subject,
         //reason I didn't initialise comment or answer is because it used to create a default answer and comment
     });
     await question
@@ -22,14 +26,13 @@ const postQuestion = async (req, res) => {
         .catch((err) => {
             res.json({ message: err });
         });
-};
-
+});
 
 
 
 //answers
 
-const allQuestions = async (req, res) => {
+const allQuestions = asyncHandler(async (req, res) => {
     try {
         const questions = await questionModel.find()
         res.json(questions)
@@ -37,11 +40,11 @@ const allQuestions = async (req, res) => {
     catch (err) {
         res.send(err)
     }
-}
+})
 
 
 //gets only answered questions along with answers
-const answeredQuestions = async (req, res) => {
+const answeredQuestions = asyncHandler(async (req, res) => {
     try {
         const questions = await questionModel.find({ "status": true })
         res.json(questions)
@@ -49,11 +52,11 @@ const answeredQuestions = async (req, res) => {
     catch (err) {
         res.send(err)
     }
-}
+})
 
 
 //gets all unanswered questions
-const unansweredQuestions = async (req, res) => {
+const unansweredQuestions = asyncHandler(async (req, res) => {
     try {
         const questions = await questionModel.find({ "status": false })
         res.json(questions)
@@ -62,12 +65,12 @@ const unansweredQuestions = async (req, res) => {
     catch (err) {
         res.send(err)
     }
-}
+})
 
 
 
 //answering a question
-const answerQ = async (req, res) => {
+const answerQ = asyncHandler(async (req, res) => {
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
@@ -77,12 +80,12 @@ const answerQ = async (req, res) => {
     } catch (err) {
         res.send(err);
     }
-};
+});
 
 
 //Commenting
 //Commenting on a question
-const commentQ = async (req, res) => {
+const commentQ = asyncHandler(async (req, res) => {
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
@@ -92,11 +95,11 @@ const commentQ = async (req, res) => {
     } catch (err) {
         res.send(err);
     }
-};
+});
 
 
 //commenting on an answer, qid= question id and aid is answer id
-const commentA = async (req, res) => {
+const commentA = asyncHandler(async (req, res) => {
     
     try {
         const update = await questionModel.updateOne(
@@ -114,20 +117,20 @@ const commentA = async (req, res) => {
     } catch (err) {
         res.send(err);
     }
-};
+});
 
 
 
 //upvoting
 //upvoting question
-const upvoteQ =  async(req, res) => {
+const upvoteQ =  asyncHandler(async(req, res) => {
     const update = await questionModel.updateOne({_id:req.params.qid},{$inc:{upvotes:1}})
     res.json(update)
-  };
+  });
 
 
 //upvoting answer
-const upvoteA= async (req, res) => {
+const upvoteA= asyncHandler(async (req, res) => {
     try {
       const update = await questionModel.updateOne(
         { _id: req.params.qid },
@@ -143,7 +146,7 @@ const upvoteA= async (req, res) => {
     } catch (err) {
       res.send(err);
     }
-  };
+  });
 
 
 //exporting
