@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 const asyncHandler = require('express-async-handler') 
-=======
->>>>>>> 5d5ed793d5bb7530214727ab3c9f1fc86f3f0603
 
 // import the models
 
