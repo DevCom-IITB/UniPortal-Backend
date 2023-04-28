@@ -16,6 +16,7 @@ const postQuestion = asyncHandler(async (req, res) => {
     const question = new questionModel({
         user_ID: req.body.user_ID,
         body: req.body.body,
+        subject:req.body.subject
         //reason I didn't initialise comment or answer is because it used to create a default answer and comment
     });
     await question
@@ -72,7 +73,7 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
 
 //answering a question
 const answerQ = asyncHandler(async (req, res) => {
-    if(!req.body.answers.user_ID || !req.body.answers.body){
+    if(!req.body.answers[0].user_ID || !req.body.answers[0].body){
         res.status(400)
         throw new Error('Please fill all the fields')
     }
@@ -91,7 +92,7 @@ const answerQ = asyncHandler(async (req, res) => {
 //Commenting
 //Commenting on a question
 const commentQ = asyncHandler(async (req, res) => {
-    if(!req.body.comments.user_ID || !req.body.comments.body){
+    if(!req.body.comments[0].user_ID || !req.body.comments[0].body){
         res.status(400)
         throw new Error('Please fill all the fields')
     }
@@ -109,7 +110,7 @@ const commentQ = asyncHandler(async (req, res) => {
 
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
-    if(!req.body.answers.comments.user_ID || !req.body.answers.comments.body){
+    if(!req.body.comments[0].user_ID || !req.body.comments[0].body){
         res.status(400)
         throw new Error('Please fill all the fields')
     }
