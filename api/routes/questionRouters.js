@@ -7,7 +7,6 @@ const  { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, ans
 //all the routings
 router.route('/').get(allQuestions)
 router.route('/post').post(postQuestion);
-router.route('/answers').get(allQuestions);
 router.route('/answeredQ').get(answeredQuestions);
 router.route('/unansweredQ').get(unansweredQuestions);
 router.route('/answerQ/:qid').patch(answerQ);

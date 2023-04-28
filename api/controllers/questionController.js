@@ -30,8 +30,9 @@ const postQuestion = asyncHandler(async (req, res) => {
 
 
 
-//answers
-
+//answers 
+// get all questions
+// try to implement that one request you send a limited number of questions and then when you scroll down you send another request with the next set of questionss
 const allQuestions = asyncHandler(async (req, res) => {
     try {
         const questions = await questionModel.find()
@@ -71,10 +72,14 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
 
 //answering a question
 const answerQ = asyncHandler(async (req, res) => {
+    if(!req.body.answers.user_ID || !req.body.answers.body){
+        res.status(400)
+        throw new Error('Please fill all the fields')
+    }
     try {
         const update = await questionModel.updateOne(
-            { _id: req.params.qid },
-            { $push: { answers: req.body.answers } ,$set:{status:true}}
+            { _id: req.params.qid }, // this line is to find the question with the id
+            { $push: { answers: req.body.answers } ,$set:{status:true}} 
         );
         res.json(update);
     } catch (err) {
@@ -134,7 +139,7 @@ const upvoteA= asyncHandler(async (req, res) => {
     try {
       const update = await questionModel.updateOne(
         { _id: req.params.qid },
-        { $inc: { 'answers.$[j].upvotes':1 } },
+        { $inc: { 'answers.$[j].upvotes':1 } },// $inc is used to increment the value of a field
         { arrayFilters: [
               {
                 "j._id": req.params.aid
