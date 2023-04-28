@@ -91,6 +91,10 @@ const answerQ = asyncHandler(async (req, res) => {
 //Commenting
 //Commenting on a question
 const commentQ = asyncHandler(async (req, res) => {
+    if(!req.body.comments.user_ID || !req.body.comments.body){
+        res.status(400)
+        throw new Error('Please fill all the fields')
+    }
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
@@ -105,13 +109,16 @@ const commentQ = asyncHandler(async (req, res) => {
 
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
-    
+    if(!req.body.answers.comments.user_ID || !req.body.answers.comments.body){
+        res.status(400)
+        throw new Error('Please fill all the fields')
+    }
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
-            { $push: { 'answers.$[j].comments': req.body.comments } },
+            { $push: { 'answers.$[j].comments': req.body.comments } },// j is the index of the answer in the array
             {
-                arrayFilters: [
+                arrayFilters: [ // arrayFilters is used to specify which elements to update in the array
                     {
                         "j._id": req.params.aid
                     }
