@@ -16,7 +16,7 @@ const commentSchema = mongoose.Schema(
 )
 
 
-//answer schema
+//answer schema..
 const AnswerSchema = mongoose.Schema(
   {
     id: mongoose.Schema.Types.ObjectId,
@@ -37,7 +37,8 @@ const AnswerSchema = mongoose.Schema(
 //question schema
 const QuestionSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
-  user_ID: { type: Number, default: "0" },
+  user_ID: { type: Number, default: 0 },
+  hidden:{type:Boolean,default:false},
   body: { type: String, default: "" },
   subject:{ type: String, default: "" },
   status: { type: Boolean, default:false},
