@@ -161,5 +161,21 @@ const upvoteA= asyncHandler(async (req, res) => {
   });
 
 
+//hidding question
+const hideQuestion = asyncHandler(async(req,res)=>{
+    try{
+        const question = await questionModel.findOneAndUpdate({
+            _id: req.params.id
+        },
+        req.body,
+        {new: true , runValidators: true})
+        res.send(question)
+    }
+    catch(err){
+        res.send(err)
+    }
+})
+
+
 //exporting
-module.exports = { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, answerQ, commentQ, commentA,upvoteQ,upvoteA}
+module.exports = { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, answerQ, commentQ, commentA,upvoteQ,upvoteA, hideQuestion}
