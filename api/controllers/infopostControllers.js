@@ -10,7 +10,7 @@ const postinfopost = asyncHandler(async (req, res) => {
     }
     const infopost = new infopostModel({
         body: req.body.body,
-        url: req.body.urls
+        urls: req.body.urls
     });
     await infopost
         .save()
