@@ -1,20 +1,16 @@
 const mongoose = require("mongoose");
 
-
 //schema for students
- const studentSchema = mongoose.Schema(
-    {
-        id: mongoose.Schema.Types.ObjectId,
-        name:{type:String,default:""},
-        roll_number: {type:Number},
-        password:{type:String,default:""},
-        asked_questions:{type:String,default:""},
-        upvoted_questions:{type:String,default:""}, 
-        comments:{type:String,default:""},
-    }
- )
+const freshieSchema = mongoose.Schema({
+  id: mongoose.Schema.Types.ObjectId,
+  name: { type: String, default: "" },
+  rollnumber: { type: Number, unique: true },
+  password: { type: String, default: "" },
+  asked_questions: { type: String, default: "" },
+  upvoted_questions: { type: String, default: "" },
+  comments: { type: String, default: "" },
+});
 
- const studentModel = mongoose.model("studentModel",studentSchema);
+const freshieModel = mongoose.model("freshieModel", freshieSchema);
 
-
- module.exports= studentModel;
+module.exports = freshieModel;

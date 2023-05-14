@@ -3,6 +3,8 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 
+//const { getimage } = require("../controllers/imageControllers");
+
 const storage = multer.diskStorage({
   destination: "../upload/images",
   filename: function (req, file, cb) {
@@ -36,5 +38,7 @@ router.post("/", upload.single("image"), async (req, res) => {
     res.json({ message: "Error uploading image" });
   }
 });
+
+//router.route("/get/:id").get(getimage);
 
 module.exports = router;
