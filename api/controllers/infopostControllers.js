@@ -10,8 +10,13 @@ const postinfopost = asyncHandler(async (req, res) => {
   }
   try {
     const infopost = new infopostModel({
+<<<<<<< HEAD
       body: req.body.body,
       urls: req.body.urls,
+=======
+        body: req.body.body,
+        urls: req.body.urls
+>>>>>>> 7425d823decc524beab5ce30db5b95b6c67c9beb
     });
     await infopost.save();
     res.json({ message: "Posted Succesfully" });

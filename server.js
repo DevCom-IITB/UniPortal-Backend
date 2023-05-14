@@ -12,10 +12,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false })); //what is urlencoded?: https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0s-router-options
 
 //All routing goes here
+<<<<<<< HEAD
 app.use("/question", require("./api/routes/questionRouters"));
 app.use("/info", require("./api/routes/infopostroutes"));
 app.use("/upload", require("./api/routes/imagepostroutes"));
 app.use("/freshie", require("./api/routes/userRoutes"));
+=======
+app.use( '/question', require('./api/routes/questionRouters'))
+app.use( '/info', require('./api/routes/infopostroutes'))
+app.use( '/upload', require('./api/routes/imagepostroutes'))
+
+
+>>>>>>> 7425d823decc524beab5ce30db5b95b6c67c9beb
 
 //listening to port 5000 by default
 app.listen(port, () => console.log(`Server running on port ${port}`));
