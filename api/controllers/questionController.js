@@ -9,10 +9,6 @@ const questionModel = require('../models/questionModel')
 
 //post questions
 const postQuestion = asyncHandler(async (req, res) => {
-    if(!req.body.user_ID || !req.body.body){
-        res.status(400)
-        throw new Error('Please fill all the fields')
-    }
     const question = new questionModel({
         user_ID: req.body.user_ID,
         body: req.body.body,
@@ -73,10 +69,6 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
 
 //answering a question
 const answerQ = asyncHandler(async (req, res) => {
-    if(!req.body.answers[0].user_ID || !req.body.answers[0].body){
-        res.status(400)
-        throw new Error('Please fill all the fields')
-    }
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid }, // this line is to find the question with the id
@@ -92,10 +84,6 @@ const answerQ = asyncHandler(async (req, res) => {
 //Commenting
 //Commenting on a question
 const commentQ = asyncHandler(async (req, res) => {
-    if(!req.body.comments[0].user_ID || !req.body.comments[0].body){
-        res.status(400)
-        throw new Error('Please fill all the fields')
-    }
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
@@ -110,10 +98,6 @@ const commentQ = asyncHandler(async (req, res) => {
 
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
-    if(!req.body.comments[0].user_ID || !req.body.comments[0].body){
-        res.status(400)
-        throw new Error('Please fill all the fields')
-    }
     try {
         const update = await questionModel.updateOne(
             { _id: req.params.qid },
@@ -178,5 +162,78 @@ const hideQuestion = asyncHandler(async(req,res)=>{
 })
 
 
+//hiding stuff
+//hiding question
+const hideQ =  asyncHandler(async(req, res) => {
+    const update = await questionModel.updateOne({_id:req.params.qid},{$set:{hidden:true}})
+    res.json(update)
+  });
+
+
+  //hiding answer
+  const hideA= asyncHandler(async (req, res) => {
+    try {
+      const update = await questionModel.updateOne(
+        { _id: req.params.qid },
+        { $set: { 'answers.$[j].hidden':true } },
+        { arrayFilters: [
+              {
+                "j._id": req.params.aid
+              }
+            ]
+          }
+      );
+      res.json(update);
+    } catch (err) {
+      res.send(err);
+    }
+  });
+
+
+  //hiding comment
+  const hideC= asyncHandler(async (req, res) => {
+    try {
+      const update = await questionModel.updateOne(
+        { _id: req.params.qid },
+        { $set: { 'comments.$[j].hidden':true } },
+        { arrayFilters: [
+              {
+                "j._id": req.params.cid
+              }
+            ]
+          }
+      );
+      res.json(update);
+    } catch (err) {
+      res.send(err);
+    }
+  });
+
+
+  //hiding comment inside an answer
+  const hideAC= asyncHandler(async (req, res) => {
+    try {
+      const update = await questionModel.updateOne(
+        { _id: req.params.qid },
+        { $set: { 
+            'answers.$[j].comments.$[i].hidden':true
+         } },
+        { arrayFilters: [
+              {
+                "j._id": req.params.aid
+              },
+              {
+                "i._id": req.params.cid
+              }
+            ]
+          }
+      );
+      res.json(update);
+    } catch (err) {
+      res.send(err);
+    }
+  });
+
+
 //exporting
-module.exports = { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, answerQ, commentQ, commentA,upvoteQ,upvoteA, hideQuestion}
+module.exports = { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, answerQ, commentQ, commentA,upvoteQ,upvoteA, hideQ,hideA,hideC,hideAC}

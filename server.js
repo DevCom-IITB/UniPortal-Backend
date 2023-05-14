@@ -22,6 +22,5 @@ app.use( '/upload', require('./api/routes/imagepostroutes'))
 
 
 
-
 //listening to port 5000 by default
 app.listen(port, () => console.log(`Server running on port ${port}`))
