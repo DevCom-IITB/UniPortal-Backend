@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
 
 // import imageSchema
-const imageModel = require("../models/imageModel");
+const imageModel =require('../models/imageModel')
+
+
 
 //comment schema
 const commentSchema = mongoose.Schema(
@@ -41,14 +43,17 @@ const QuestionSchema = mongoose.Schema({
   status: { type: Boolean, default:false},
   upvotes: { type: Number, default: "0" },
   asked_At: { type: Date, default: Date.now },
-  image: { type: mongoose.Schema.Types.ObjectId, ref: "imageModel" },
-  hidden: { type: Boolean, default: false },
-  answers: [AnswerSchema],
-  comments: [commentSchema],
+  image:  {type:mongoose.Schema.Types.ObjectId, ref :imageModel},
+  hidden: { type: Boolean, default:false},
+  answers: [ AnswerSchema],
+  comments: [commentSchema]
 });
 
+
+
 //create model of the schema
-const questionModel = mongoose.model("questionModel", QuestionSchema);
+const questionModel = mongoose.model("questionModel",QuestionSchema);
 
 // export the model
 module.exports = questionModel;
+

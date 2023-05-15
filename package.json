@@ -10,15 +10,15 @@
   "author": "Sanskar Gosavi",
   "license": "MIT",
   "dependencies": {
-<<<<<<< HEAD
-    "bcryptjs": "^2.4.3",
-=======
     "@elastic/elasticsearch": "^8.7.0",
->>>>>>> 7425d823decc524beab5ce30db5b95b6c67c9beb
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-async-handler": "^1.2.0",
-    "mongoose": "^6.10.0",
+    "jsonwebtoken": "^9.0.0",
+    "mongoose": "^7.0.3",
     "multer": "^1.4.5-lts.1"
   },
   "devDependencies": {
