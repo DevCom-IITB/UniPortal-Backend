@@ -4,10 +4,6 @@ const infopostModel = require('../models/infopostModel')
 
 
 const postinfopost = asyncHandler(async (req, res) => {
-    if(!req.body.body){   //need to check the user as smp also
-        res.status(400)
-        throw new Error('Please fill all the fields')
-    }
     const infopost = new infopostModel({
         body: req.body.body,
         url: req.body.urls
