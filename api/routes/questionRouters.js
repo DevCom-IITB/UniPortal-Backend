@@ -9,7 +9,7 @@ router.route('/').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STU
 router.route('/post').post(verifyRoles(ROLES_LIST.STUDENT,ROLES_LIST.Admin),postQuestion); //testing
 router.route('/answeredQ').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),answeredQuestions);
 router.route('/unansweredQ').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),unansweredQuestions);
-router.route('/answerQ/:qid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP),answerQ);
+router.route('/answerQ/:qid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),answerQ);
 router.route('/commentQ/:qid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),commentQ);
 router.route('/commentA/:qid/:aid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),commentA);
 router.route('/upvoteQ/:qid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.STUDENT),upvoteQ);

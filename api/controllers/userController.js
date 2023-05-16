@@ -5,7 +5,7 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 
 
-
+//whenever we set or remove cookie use secure : true during deployment
 //DONT PUSH DONT PUSH DONT PUSH IN DEPLOYMENT
 //*********************************************************** */
 //this function is only for experiments and not for deployment
@@ -47,7 +47,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const roles = Object.values(foundUser.roles)
     const userINFO = { user_ID: foundUser.user_ID, roles: roles }
-    const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' }) //generating new accessToken
+    const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '86400' }) //generating new accessToken
     //To accesss inner contents of accessToken in front end we will need jwt decode ...
     const newRefreshToken = jwt.sign(userINFO, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '86400s' }) //generating new refreshToken
 
@@ -139,7 +139,7 @@ const refreshUser = async (req, res) => {
       //Generating new tokens
       const roles = Object.values(foundUser.roles)
       const userINFO = { user_ID: foundUser.user_ID, roles: roles }
-      const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '600s' })//generating new access token
+      const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })//generating new access token
       //refresh token rotation
       const newRefreshToken = jwt.sign(userINFO, process.env.REFRESH_TOKEN_SECRET, { expiresIn: '1d' })//generating new refresh token
       foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken] //we append everything to the refreshToken array in database

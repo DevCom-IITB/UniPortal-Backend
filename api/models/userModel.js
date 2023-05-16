@@ -7,9 +7,10 @@ const mongoose = require("mongoose");
         name:{type:String,required:true},
         user_ID: {type:Number, required:true},
         password:{type:String,required:true},
-        asked_questions:{type:String,default:""},
-        upvoted_questions:{type:String,default:""}, 
-        comments:{type:String,default:""},
+        asked_questions:[],
+        upvoted_questions:[], 
+        upvoted_answers:[],
+        comments:{type:Array,default:[]},
         roles:{
             freshie:{
                 type:Number,
