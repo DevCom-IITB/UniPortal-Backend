@@ -1,9 +1,8 @@
 const asyncHandler = require('express-async-handler')  // the function of async handler here is to handle errors in async functions. https://www.npmjs.com/package/express-async-handler
-
+const elastic = require('./elasticController')
 // import the models
 
 const questionModel = require('../models/questionModel')
-
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -18,6 +17,7 @@ const postQuestion = asyncHandler(async (req, res) => {
     await question
         .save()
         .then((data) => {
+            elastic.indexDoc(data.body,data._id)
             res.json(data);
         })
         .catch((err) => {
@@ -146,25 +146,13 @@ const upvoteA= asyncHandler(async (req, res) => {
   });
 
 
-//hidding question
-const hideQuestion = asyncHandler(async(req,res)=>{
-    try{
-        const question = await questionModel.findOneAndUpdate({
-            _id: req.params.id
-        },
-        req.body,
-        {new: true , runValidators: true})
-        res.send(question)
-    }
-    catch(err){
-        res.send(err)
-    }
-})
+
 
 
 //hiding stuff
 //hiding question
 const hideQ =  asyncHandler(async(req, res) => {
+    elastic.deleteDoc(req.params.qid)
     const update = await questionModel.updateOne({_id:req.params.qid},{$set:{hidden:true}})
     res.json(update)
   });

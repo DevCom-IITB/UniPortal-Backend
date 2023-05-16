@@ -8,8 +8,8 @@ const verifyRoles = (...allowedRoles) =>{
         console.log(result)
         
         if(!result){
-            return res.sendStatus(401)
             console.log("Not enough permissions")
+            return res.sendStatus(401)
         }
 
         next()

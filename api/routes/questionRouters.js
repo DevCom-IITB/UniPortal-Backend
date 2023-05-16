@@ -4,10 +4,9 @@ const {verifyRoles} = require('../middlewares/verifyRoles')
 const ROLES_LIST = require('../../config/roles_list')
 //import the endpoint functions
 const  { postQuestion, allQuestions, answeredQuestions, unansweredQuestions, answerQ, commentQ, commentA,upvoteQ,upvoteA,hideQ,hideA,hideAC,hideC} =require('../controllers/questionController')
-
 //all the routings
 router.route('/').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),allQuestions)
-router.route('/post').post(verifyRoles(ROLES_LIST.STUDENT,ROLES_LIST.Admin),postQuestion);
+router.route('/post').post(verifyRoles(ROLES_LIST.STUDENT,ROLES_LIST.Admin),postQuestion); //testing
 router.route('/answeredQ').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),answeredQuestions);
 router.route('/unansweredQ').get(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP,ROLES_LIST.STUDENT),unansweredQuestions);
 router.route('/answerQ/:qid').patch(verifyRoles(ROLES_LIST.Admin,ROLES_LIST.SMP),answerQ);

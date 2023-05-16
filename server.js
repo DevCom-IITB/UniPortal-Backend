@@ -24,7 +24,7 @@ app.use(authenticateToken)
 app.use( '/question', require('./api/routes/questionRouters'))
 app.use( '/info', require('./api/routes/infopostroutes'))
 app.use( '/upload', require('./api/routes/imagepostroutes'))
-
+app.use('/search',require('./api/routes/elasticRouters'))
 
 
 //listening to port 5000 by default
