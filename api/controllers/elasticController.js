@@ -2,7 +2,14 @@ const asyncHandler = require('express-async-handler')
 const fs = require('fs')
 const { Client } = require('@elastic/elasticsearch')
 const client = new Client({
-    node: "http://localhost:9200"
+    node: process.env.ELASTIC_URI,
+    auth:{
+        "username":process.env.ELASTIC_USERNAME,
+        "password":process.env.ELASTIC_PASSWORD
+    },
+  tls: {
+    rejectUnauthorized: false
+  }
 })
 
 

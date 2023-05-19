@@ -7,10 +7,12 @@ const mongoose = require("mongoose");
         name:{type:String,required:true},
         user_ID: {type:Number, required:true},
         password:{type:String,required:true},
+        email:{type:String,required:false,default:""},
         asked_questions:[],
         upvoted_questions:[], 
         upvoted_answers:[],
-        comments:{type:Array,default:[]},
+        question_comments:[],
+        answer_comments:[],
         roles:{
             freshie:{
                 type:Number,
@@ -23,6 +25,7 @@ const mongoose = require("mongoose");
     }
  )
 
+ 
 
 
 const userModel = mongoose.model("userModel", userSchema);
