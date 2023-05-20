@@ -19,7 +19,7 @@ const AnswerSchema = mongoose.Schema({
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
   upvotes: { type: Number, default: 0 },
-  image: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
+  images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
   hidden: { type: Boolean, default: false },
   comments: [commentSchema],
 });
@@ -35,7 +35,7 @@ const QuestionSchema = mongoose.Schema({
   status: { type: Boolean, default: false },
   upvotes: { type: Number, default: "0" },
   asked_At: { type: Date, default: Date.now },
-  image: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
+  images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
   hidden: { type: Boolean, default: false },
   answers: [AnswerSchema],
   comments: [commentSchema],
