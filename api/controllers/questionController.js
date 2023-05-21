@@ -51,8 +51,14 @@ const postQuestion = asyncHandler(async (req, res) => {
         savedImages.push(savedImage._id);
       }
       //save the images to the question model
+      const um = await userModel
+        .findOne()
+        .where("user_ID")
+        .equals(req.user_ID)
+        .exec();
       const question = new questionModel({
         user_ID: req.user_ID,
+        user_Name: um.name,
         body: req.body.body,
         images: savedImages,
         subject: req.body.subject,
@@ -63,11 +69,6 @@ const postQuestion = asyncHandler(async (req, res) => {
         //automatic indexing of  question whenever it is posted
         elastic.indexDoc(data.body, data._id);
         //inserting asked question id to user model
-        const um = await userModel
-          .findOne()
-          .where("user_ID")
-          .equals(req.user_ID)
-          .exec();
         const temp = um.asked_questions.concat([
           { questionID: data._id.valueOf() },
         ]);
@@ -155,6 +156,11 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
 
 //answering a question
 const answerQ = asyncHandler(async (req, res) => {
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(req.user_ID)
+    .exec();
   await questionModel
     .updateOne(
       { _id: req.params.qid }, // this line is to find the question with the id
@@ -164,6 +170,7 @@ const answerQ = asyncHandler(async (req, res) => {
             {
               body: req.body.body,
               user_ID: req.user_ID,
+              user_Name: um.name,
             },
           ],
         },
@@ -184,6 +191,11 @@ const answerQ = asyncHandler(async (req, res) => {
 //this  is because we keep track of  upvotes so that it cannot happen twice .. so no point of comments
 const commentQ = asyncHandler(async (req, res) => {
   const cID = new mongoose.Types.ObjectId();
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(req.user_ID)
+    .exec();
   await questionModel
     .updateOne(
       { _id: req.params.qid },
@@ -194,6 +206,7 @@ const commentQ = asyncHandler(async (req, res) => {
               _id: cID,
               body: req.body.body,
               user_ID: req.user_ID,
+              user_Name: um.name,
             },
           ],
         },
@@ -202,11 +215,7 @@ const commentQ = asyncHandler(async (req, res) => {
     .then(async (data) => {
       console.log(cID.valueOf());
       //inserting posted comment id to user model
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
+
       const temp = um.question_comments.concat([
         { questionID: req.params.qid, commentID: cID.valueOf() },
       ]);
@@ -220,6 +229,11 @@ const commentQ = asyncHandler(async (req, res) => {
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
   const cID = new mongoose.Types.ObjectId();
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(req.user_ID)
+    .exec();
   await questionModel
     .updateOne(
       { _id: req.params.qid },
@@ -230,6 +244,7 @@ const commentA = asyncHandler(async (req, res) => {
               _id: cID,
               body: req.body.body,
               user_ID: req.user_ID,
+              user_Name: um.name,
             },
           ],
         },
@@ -245,11 +260,6 @@ const commentA = asyncHandler(async (req, res) => {
     )
     .then(async (data) => {
       //inserting posted comments in user model
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
       const temp = um.answer_comments.concat([
         {
           questionID: req.params.qid,
