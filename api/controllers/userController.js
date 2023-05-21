@@ -10,11 +10,25 @@ const jwt = require("jsonwebtoken");
 //this function is only for experiments and not for deployment
 const registerUser = asyncHandler(async (req, res) => {
   try {
+    const { name, user_ID, password } = req.body
+
+    if(!name || !user_ID || !password){
+        res.status(400)
+        throw new Error('Please fill in all fields')
+    }
+
+    // check if the user exists
+    const userExists = await userModel.findOne({ user_ID })
+
+    if(userExists){
+        res.status(400)
+        throw new Error('User already exists')
+    }
     const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = new userModel({
-      name: req.body.name,
-      user_ID: req.body.user_ID,
+      name: name,
+      user_ID: user_ID,
       password: hashedPassword,
     });
     await newUser
@@ -26,7 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
         console.log(err);
       });
   } catch (err) {
-    console.log(err);
+    throw new Error('User already exists')
   }
 });
 //***************************************************************/
