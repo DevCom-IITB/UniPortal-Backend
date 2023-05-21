@@ -13,13 +13,9 @@ const mongoose = require("mongoose");
         upvoted_answers:[],
         question_comments:[],
         answer_comments:[],
+        answered_questions:[],
         roles:{
-            freshie:{
-                type:Number,
-                default:7669
-            },
-            SMP:Number,
-            ADMIN:Number
+            type : Number,
         },
         refreshToken:[String]
     }

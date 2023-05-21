@@ -40,7 +40,7 @@ const registerUser = asyncHandler(async (req, res) => {
         console.log(err);
       });
   } catch (err) {
-    throw new Error('User already exists')
+    throw new Error('Fields entered are not valid')
   }
 });
 //***************************************************************/
@@ -58,7 +58,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const roles = Object.values(foundUser.roles);
     const userINFO = { user_ID: foundUser.user_ID, roles: roles };
     const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "86400",
+      expiresIn: "1800s",
     }); //generating new accessToken
     //To accesss inner contents of accessToken in front end we will need jwt decode ...
     const newRefreshToken = jwt.sign(
@@ -77,9 +77,10 @@ const loginUser = asyncHandler(async (req, res) => {
       const refreshToken = cookies.jwt;
       const foundToken = await userModel.findOne({ refreshToken }).exec();
 
+      // if refresh token is not found in the database we clear all cookies as the one we get from the cookie from the browser is not valid
       if (!foundToken) {
-        console.log("Detected refresh token reuse at login");
-        newRefreshTokenArray = [];
+        foundUser.refreshToken = [];
+        throw new Error("Detected tampering with cookies");
       }
       res.clearCookie("jwt", { httpOnly: true, sameSite: "None" });
     }
