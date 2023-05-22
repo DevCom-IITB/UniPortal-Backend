@@ -1,18 +1,19 @@
-const refreshUser = require("../controllers/userController");
 const jwt = require("jsonwebtoken");
+const { refreshUser } = require("../controllers/userController")
 
 
 const verifyRoles = (...allowedRoles) =>{
     return(req,res,next)=>{
+        console.log("We are in verifyRoles");
         const bearerHeader = req.headers['authorization']
-        if(typeof bearerHeader === 'undefined'){
-            return res.sendStatus(401)
+        let accessToken = ''
+        if(typeof bearerHeader !== 'undefined'){
+            const bearer = bearerHeader.split(' ')
+            accessToken = bearer[1]
         }
-        const bearer = bearerHeader.split(' ')
-        const accessToken = bearer[1]
         console.log("Access Token is : %s",accessToken);
         const cookie = req.cookies
-        console.log("Cookie is : %s",cookie);
+        console.log("refresh token is : %s",cookie.jwt);
         jwt.verify(
             accessToken,
             process.env.ACCESS_TOKEN_SECRET,
@@ -20,7 +21,8 @@ const verifyRoles = (...allowedRoles) =>{
                 if (err) {
                     //if token expired
                     console.log("The acess token has expired");
-                    refreshUser(req.cookies)
+                    refreshUser
+                    console.log("we refreshed the access token");
                     verifyRoles(...allowedRoles)
                 }
                 else{
@@ -42,5 +44,9 @@ const verifyRoles = (...allowedRoles) =>{
         next()
     }
 }
+
+
+
+
 //error is coming because I have not defined req.roles as an array
-module.exports={verifyRoles }
+module.exports={ verifyRoles }

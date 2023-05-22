@@ -1,7 +1,7 @@
-const asyncHandler = require("express-async-handler");
+const asyncHandler = require("express-async-handler"); //async-handler for handling errors in async functions
 const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
-require("dotenv").config();
+require("dotenv").config(); 
 const jwt = require("jsonwebtoken");
 
 //whenever we set or remove cookie use secure : true during deployment
@@ -59,7 +59,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const role = foundUser.role;
     const userINFO = { user_ID: foundUser.user_ID, role: role };
     const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "1800s",
+      expiresIn: "18s",
     }); //generating new accessToken
     //To accesss inner contents of accessToken in front end we will need jwt decode ...
     const newRefreshToken = jwt.sign(
@@ -110,10 +110,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
 //for creating new access tokens once the old ones have expired
 //as well as implementing refresh token rotation
-const refreshUser = async (req, res) => {
+const refreshUser = asyncHandler( async (req, res) => {
   //get details from req
   const cookies = req.cookies;
-  console.log(cookies);
+  console.log("cookie is: %s",cookies);
   //say we logged out previously, this would prevent from creating new access tokens
   if (!cookies?.jwt)
     return res.status(401).json({ message: "No Refresh Token Found" });
@@ -189,8 +189,9 @@ const refreshUser = async (req, res) => {
       console.log("Successful regeneration of tokens");
       res.json(accessToken); //sending the new access token
     }
-  );
-};
+  ); 
+  
+});
 
 //logging out
 //refreshing user

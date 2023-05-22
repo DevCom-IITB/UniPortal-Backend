@@ -19,7 +19,7 @@ app.use(cookieParser());
 //All routing goes here
 app.use("/user", require("./api/routes/userRouters"));
 
-app.use(authenticateToken);
+// app.use(authenticateToken);
 app.use(
   "/question",
   require("./api/routes/questionRouters"),
