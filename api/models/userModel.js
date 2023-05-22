@@ -14,9 +14,7 @@ const mongoose = require("mongoose");
         question_comments:[],
         answer_comments:[],
         answered_questions:[],
-        roles:{
-            type : Number,
-        },
+        role:{type : Number, required:true},
         refreshToken:[String]
     }
  )

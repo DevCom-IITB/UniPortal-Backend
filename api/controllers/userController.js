@@ -10,9 +10,9 @@ const jwt = require("jsonwebtoken");
 //this function is only for experiments and not for deployment
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, user_ID, password } = req.body
+    const { name, user_ID, password, role } = req.body
 
-    if(!name || !user_ID || !password){
+    if(!name || !user_ID || !password || !role){
         res.status(400)
         throw new Error('Please fill in all fields')
     }
@@ -30,6 +30,7 @@ const registerUser = asyncHandler(async (req, res) => {
       name: name,
       user_ID: user_ID,
       password: hashedPassword,
+      role: role,
     });
     await newUser
       .save()
@@ -48,15 +49,15 @@ const registerUser = asyncHandler(async (req, res) => {
 //student login but should be extended to SMP login in future
 const loginUser = asyncHandler(async (req, res) => {
   const cookies = req.cookies; //loading cookie from any previous login(current device) if it exists
-  console.log("COOKIE from previous session %s", cookies);
+  console.log("COOKIE from previous session %s", cookies); 
   //get details from req
   const { user_ID, password } = req.body;
   //find the student from the database
   const foundUser = await userModel.findOne({ user_ID });
   //check with the credentials
   if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
-    const roles = Object.values(foundUser.roles);
-    const userINFO = { user_ID: foundUser.user_ID, roles: roles };
+    const role = foundUser.role;
+    const userINFO = { user_ID: foundUser.user_ID, role: role };
     const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
       expiresIn: "1800s",
     }); //generating new accessToken
@@ -80,6 +81,7 @@ const loginUser = asyncHandler(async (req, res) => {
       // if refresh token is not found in the database we clear all cookies as the one we get from the cookie from the browser is not valid
       if (!foundToken) {
         foundUser.refreshToken = [];
+        await foundUser.save().catch((err) => console.log(err));
         throw new Error("Detected tampering with cookies");
       }
       res.clearCookie("jwt", { httpOnly: true, sameSite: "None" });
@@ -115,28 +117,30 @@ const refreshUser = async (req, res) => {
   //say we logged out previously, this would prevent from creating new access tokens
   if (!cookies?.jwt)
     return res.status(401).json({ message: "No Refresh Token Found" });
-  const refreshToken = cookies.jwt; //if cookie exists we extract the refresh token from it
+  const refreshToken = cookies.jwt; //if jwt in cookie exists we extract the refresh token from it
   res.clearCookie("jwt", { httpOnly: true, sameSite: "None" }); //after extarcting the refresh token we remove it
 
   //we find the user who has that particular refresh token
   const foundUser = await userModel.findOne({ refreshToken });
 
-  //In case we dont find a user that would imply reuse detection
+  //In case we dont find a user that would imply reuse/tampering detection
   //check if such a user exists
   if (!foundUser) {
-    jwt.verify(
-      refreshToken,
-      process.env.REFRESH_TOKEN_SECRET,
-      async (err, decoded) => {
-        if (err) return res.status(403).json({ message: "cookie not found" }); //Forbidden
-        const hackedUser = await userModel
-          .findOne({ user_ID: decoded.user_ID })
-          .exec();
-        hackedUser.refreshToken = []; //essentially if we find reuse of refreshTokens , we will be removing all refreshTokens ever granted to that profile, and making them login to all the devices
-        await hackedUser.save();
-      }
-    );
-    return res.status(403).json({ message: "cookie not found" });
+      // jwt.verify checks if the refresh token is valid and if it is valid it returns the decoded token 
+      jwt.verify(
+        refreshToken,
+        process.env.REFRESH_TOKEN_SECRET,
+        async (err, decoded) => {
+          if (err) return res.status(403).json({ message: "cookie not found" }); //Forbidden
+          const hackedUser = await userModel
+            .findOne({ user_ID: decoded.user_ID })
+            .exec();
+          hackedUser.refreshToken = [];
+          console.log("hacked user refresh token cleared"); //essentially if we find reuse of refreshTokens , we will be removing all refreshTokens ever granted to that profile, and making them login to all the devices
+          await hackedUser.save();
+        }
+      );
+    throw new Error("Cookie not found");
   }
 
   //proceeds only if user was found else user needs to log back again to all of its devices
@@ -162,10 +166,10 @@ const refreshUser = async (req, res) => {
       }
 
       //Generating new tokens
-      const roles = Object.values(foundUser.roles);
-      const userINFO = { user_ID: foundUser.user_ID, roles: roles };
+      const role = foundUser.role; 
+      const userINFO = { user_ID: foundUser.user_ID, role: role };
       const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1d",
+        expiresIn: "1800s",
       }); //generating new access token
       //refresh token rotation
       const newRefreshToken = jwt.sign(
@@ -182,6 +186,7 @@ const refreshUser = async (req, res) => {
         maxAge: 24 * 60 * 60 * 1000,
         sameSite: "none",
       });
+      console.log("Successful regeneration of tokens");
       res.json(accessToken); //sending the new access token
     }
   );
