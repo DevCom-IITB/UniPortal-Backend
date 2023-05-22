@@ -9,6 +9,7 @@ const commentSchema = mongoose.Schema({
   user_ID: { type: Number, required: true },
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
+  images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
   hidden: { type: Boolean, default: false },
 });
 
