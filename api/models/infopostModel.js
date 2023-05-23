@@ -10,7 +10,8 @@ const infopostSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
   body: { type: String, required: true },
   urls: { type: String, default: "" },
-  images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
+  // images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
+  images: [{ type: String }],
 });
 
 const infopostModel = mongoose.model("infopostModel", infopostSchema);

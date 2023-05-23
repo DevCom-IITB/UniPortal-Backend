@@ -37,8 +37,8 @@ const postinfopost = asyncHandler(async (req, res) => {
           filename: image.filename,
           path: image.path,
         });
-        const savedImage = await newImage.save();
-        savedImages.push(savedImage._id);
+        await newImage.save();
+        savedImages.push(image.filename);
       }
       const infopost = new infopostModel({
         body: req.body.body,

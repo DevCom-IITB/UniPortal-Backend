@@ -47,8 +47,8 @@ const postQuestion = asyncHandler(async (req, res) => {
           filename: image.filename,
           path: image.path,
         });
-        const savedImage = await newImage.save();
-        savedImages.push(savedImage._id);
+        await newImage.save();
+        savedImages.push(image.filename);
       }
       //save the images to the question model
 
@@ -175,8 +175,8 @@ const answerQ = asyncHandler(async (req, res) => {
           filename: image.filename,
           path: image.path,
         });
-        const savedImage = await newImage.save();
-        savedImages.push(savedImage._id);
+        await newImage.save();
+        savedImages.push(image.filename);
       }
       const body = req.body;
       const um = await userModel.find({ user_ID: body.user_ID });
