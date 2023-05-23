@@ -156,33 +156,55 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
 
 //answering a question
 const answerQ = asyncHandler(async (req, res) => {
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(req.user_ID)
-    .exec();
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid }, // this line is to find the question with the id
-      {
-        $push: {
-          answers: [
-            {
-              body: req.body.body,
-              user_ID: req.user_ID,
-              user_Name: um.name,
-            },
-          ],
-        },
-        $set: { status: true },
+  try {
+    upload.array("images", 10)(req, res, async function (err) {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "An error occurred while uploading the image" });
       }
-    )
-    .then((data) => {
-      res.json(data);
-    })
-    .catch((err) => {
-      res.send(err);
+      //get the images from request
+      const images = req.files;
+      //initiliaze ann array and store the id of the images
+      const savedImages = [];
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const newImage = new imageModel({
+          filename: image.filename,
+          path: image.path,
+        });
+        const savedImage = await newImage.save();
+        savedImages.push(savedImage._id);
+      }
+      const um = await userModel
+        .findOne()
+        .where("user_ID")
+        .equals(req.user_ID)
+        .exec();
+      await questionModel
+        .updateOne(
+          { _id: req.params.qid }, // this line is to find the question with the id
+          {
+            $push: {
+              answers: [
+                {
+                  body: req.body.body,
+                  user_ID: req.user_ID,
+                  user_Name: um.name,
+                  images: savedImages,
+                },
+              ],
+            },
+            $set: { status: true },
+          }
+        )
+        .then((data) => {
+          res.json(data);
+        });
     });
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 //Commenting
@@ -190,88 +212,136 @@ const answerQ = asyncHandler(async (req, res) => {
 //no point of keeping track of comments
 //this  is because we keep track of  upvotes so that it cannot happen twice .. so no point of comments
 const commentQ = asyncHandler(async (req, res) => {
-  const cID = new mongoose.Types.ObjectId();
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(req.user_ID)
-    .exec();
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $push: {
-          comments: [
-            {
-              _id: cID,
-              body: req.body.body,
-              user_ID: req.user_ID,
-              user_Name: um.name,
-            },
-          ],
-        },
+  try {
+    upload.array("images", 10)(req, res, async function (err) {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "An error occurred while uploading the image" });
       }
-    )
-    .then(async (data) => {
-      console.log(cID.valueOf());
-      //inserting posted comment id to user model
+      //get the images from request
+      const images = req.files;
+      //initiliaze ann array and store the id of the images
+      const savedImages = [];
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const newImage = new imageModel({
+          filename: image.filename,
+          path: image.path,
+        });
+        const savedImage = await newImage.save();
+        savedImages.push(savedImage._id);
+      }
+      const cID = new mongoose.Types.ObjectId();
+      const um = await userModel
+        .findOne()
+        .where("user_ID")
+        .equals(req.user_ID)
+        .exec();
+      await questionModel
+        .updateOne(
+          { _id: req.params.qid },
+          {
+            $push: {
+              comments: [
+                {
+                  _id: cID,
+                  body: req.body.body,
+                  user_ID: req.user_ID,
+                  user_Name: um.name,
+                  images: savedImages,
+                },
+              ],
+            },
+          }
+        )
+        .then(async (data) => {
+          console.log(cID.valueOf());
+          //inserting posted comment id to user model
 
-      const temp = um.question_comments.concat([
-        { questionID: req.params.qid, commentID: cID.valueOf() },
-      ]);
-      um.question_comments = temp;
-      await um.save();
-      res.json(data);
-    })
-    .catch((err) => res.send(err));
+          const temp = um.question_comments.concat([
+            { questionID: req.params.qid, commentID: cID.valueOf() },
+          ]);
+          um.question_comments = temp;
+          await um.save();
+          res.json(data);
+        });
+    });
+  } catch (err) {
+    res.json({ message: "error" });
+  }
 });
 
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
-  const cID = new mongoose.Types.ObjectId();
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(req.user_ID)
-    .exec();
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $push: {
-          "answers.$[j].comments": [
-            {
-              _id: cID,
-              body: req.body.body,
-              user_ID: req.user_ID,
-              user_Name: um.name,
-            },
-          ],
-        },
-      }, // j is the index of the answer in the array
-      {
-        arrayFilters: [
-          // arrayFilters is used to specify which elements to update in the array
-          {
-            "j._id": req.params.aid,
-          },
-        ],
+  try {
+    upload.array("images", 10)(req, res, async function (err) {
+      if (err) {
+        return res
+          .status(500)
+          .json({ error: "An error occurred while uploading the image" });
       }
-    )
-    .then(async (data) => {
-      //inserting posted comments in user model
-      const temp = um.answer_comments.concat([
-        {
-          questionID: req.params.qid,
-          answerID: req.params.aid,
-          commentID: cID.valueOf(),
-        },
-      ]);
-      um.answer_comments = temp;
-      await um.save();
-      res.json(data);
-    })
-    .catch((err) => res.send(err));
+      //get the images from request
+      const images = req.files;
+      //initiliaze ann array and store the id of the images
+      const savedImages = [];
+      for (let i = 0; i < images.length; i++) {
+        const image = images[i];
+        const newImage = new imageModel({
+          filename: image.filename,
+          path: image.path,
+        });
+        const savedImage = await newImage.save();
+        savedImages.push(savedImage._id);
+      }
+      const cID = new mongoose.Types.ObjectId();
+      const um = await userModel
+        .findOne()
+        .where("user_ID")
+        .equals(req.user_ID)
+        .exec();
+      await questionModel
+        .updateOne(
+          { _id: req.params.qid },
+          {
+            $push: {
+              "answers.$[j].comments": [
+                {
+                  _id: cID,
+                  body: req.body.body,
+                  user_ID: req.user_ID,
+                  user_Name: um.name,
+                  images: savedImages,
+                },
+              ],
+            },
+          }, // j is the index of the answer in the array
+          {
+            arrayFilters: [
+              // arrayFilters is used to specify which elements to update in the array
+              {
+                "j._id": req.params.aid,
+              },
+            ],
+          }
+        )
+        .then(async (data) => {
+          //inserting posted comments in user model
+          const temp = um.answer_comments.concat([
+            {
+              questionID: req.params.qid,
+              answerID: req.params.aid,
+              commentID: cID.valueOf(),
+            },
+          ]);
+          um.answer_comments = temp;
+          await um.save();
+          res.json(data);
+        });
+    });
+  } catch (err) {
+    res.send(err);
+  }
 });
 
 //upvoting
