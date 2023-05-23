@@ -9,7 +9,6 @@ const commentSchema = mongoose.Schema({
   user_ID: { type: Number, required: true },
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
-  images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
   hidden: { type: Boolean, default: false },
 });
 
@@ -32,7 +31,6 @@ const QuestionSchema = mongoose.Schema({
   user_Name: { type: String, default: "" },
   hidden: { type: Boolean, default: false },
   body: { type: String, required: true },
-  subject: { type: String, default: "" },
   status: { type: Boolean, default: false },
   upvotes: { type: Number, default: "0" },
   asked_At: { type: Date, default: Date.now },

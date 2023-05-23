@@ -1,7 +1,7 @@
 const asyncHandler = require("express-async-handler"); //async-handler for handling errors in async functions
 const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
-require("dotenv").config(); 
+require("dotenv").config();
 const jwt = require("jsonwebtoken");
 
 //whenever we set or remove cookie use secure : true during deployment
@@ -10,19 +10,19 @@ const jwt = require("jsonwebtoken");
 //this function is only for experiments and not for deployment
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { name, user_ID, password, role } = req.body
+    const { name, user_ID, password, role } = req.body;
 
-    if(!name || !user_ID || !password || !role){
-        res.status(400)
-        throw new Error('Please fill in all fields')
+    if (!name || !user_ID || !password || !role) {
+      res.status(400);
+      throw new Error("Please fill in all fields");
     }
 
     // check if the user exists
-    const userExists = await userModel.findOne({ user_ID })
+    const userExists = await userModel.findOne({ user_ID });
 
-    if(userExists){
-        res.status(400)
-        throw new Error('User already exists')
+    if (userExists) {
+      res.status(400);
+      throw new Error("User already exists");
     }
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -41,7 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
         console.log(err);
       });
   } catch (err) {
-    throw new Error('Fields entered are not valid')
+    throw new Error("Fields entered are not valid");
   }
 });
 //***************************************************************/
@@ -49,7 +49,7 @@ const registerUser = asyncHandler(async (req, res) => {
 //student login but should be extended to SMP login in future
 const loginUser = asyncHandler(async (req, res) => {
   const cookies = req.cookies; //loading cookie from any previous login(current device) if it exists
-  console.log("COOKIE from previous session %s", cookies); 
+  console.log("COOKIE from previous session %s", cookies);
   //get details from req
   const { user_ID, password } = req.body;
   //find the student from the database
@@ -59,7 +59,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const role = foundUser.role;
     const userINFO = { user_ID: foundUser.user_ID, role: role };
     const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "30s",
+      expiresIn: "3600s",
     }); //generating new accessToken
     //To accesss inner contents of accessToken in front end we will need jwt decode ...
     const newRefreshToken = jwt.sign(
@@ -110,10 +110,10 @@ const loginUser = asyncHandler(async (req, res) => {
 
 //for creating new access tokens once the old ones have expired
 //as well as implementing refresh token rotation
-const refreshUser = asyncHandler( async (req, res) => {
+const refreshUser = asyncHandler(async (req, res) => {
   //get details from req
   const cookies = req.cookies;
-  console.log("cookie is: %s",cookies);
+  console.log("cookie is: %s", cookies);
   //say we logged out previously, this would prevent from creating new access tokens
   if (!cookies?.jwt)
     return res.status(401).json({ message: "No Refresh Token Found" });
@@ -126,20 +126,20 @@ const refreshUser = asyncHandler( async (req, res) => {
   //In case we dont find a user that would imply reuse/tampering detection
   //check if such a user exists
   if (!foundUser) {
-      // jwt.verify checks if the refresh token is valid and if it is valid it returns the decoded token 
-      jwt.verify(
-        refreshToken,
-        process.env.REFRESH_TOKEN_SECRET,
-        async (err, decoded) => {
-          if (err) return res.status(403).json({ message: "cookie not found" }); //Forbidden
-          const hackedUser = await userModel
-            .findOne({ user_ID: decoded.user_ID })
-            .exec();
-          hackedUser.refreshToken = [];
-          console.log("hacked user refresh token cleared"); //essentially if we find reuse of refreshTokens , we will be removing all refreshTokens ever granted to that profile, and making them login to all the devices
-          await hackedUser.save();
-        }
-      );
+    // jwt.verify checks if the refresh token is valid and if it is valid it returns the decoded token
+    jwt.verify(
+      refreshToken,
+      process.env.REFRESH_TOKEN_SECRET,
+      async (err, decoded) => {
+        if (err) return res.status(403).json({ message: "cookie not found" }); //Forbidden
+        const hackedUser = await userModel
+          .findOne({ user_ID: decoded.user_ID })
+          .exec();
+        hackedUser.refreshToken = [];
+        console.log("hacked user refresh token cleared"); //essentially if we find reuse of refreshTokens , we will be removing all refreshTokens ever granted to that profile, and making them login to all the devices
+        await hackedUser.save();
+      }
+    );
     throw new Error("Cookie not found");
   }
 
@@ -166,10 +166,10 @@ const refreshUser = asyncHandler( async (req, res) => {
       }
 
       //Generating new tokens
-      const role = foundUser.role; 
+      const role = foundUser.role;
       const userINFO = { user_ID: foundUser.user_ID, role: role };
       const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "30s",
+        expiresIn: "3600s",
       }); //generating new access token
       //refresh token rotation
       const newRefreshToken = jwt.sign(
@@ -187,13 +187,11 @@ const refreshUser = asyncHandler( async (req, res) => {
         sameSite: "none",
       });
       console.log("Successful regeneration of tokens");
-      res.json({ accessToken : accessToken });
-       //sending the new access token
+      res.json({ accessToken: accessToken });
+      //sending the new access token
     }
-  ); 
-  
+  );
 });
- 
 
 //logging out
 //refreshing user

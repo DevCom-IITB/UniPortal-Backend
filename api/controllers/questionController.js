@@ -51,32 +51,34 @@ const postQuestion = asyncHandler(async (req, res) => {
         savedImages.push(savedImage._id);
       }
       //save the images to the question model
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
-      const question = new questionModel({
-        user_ID: req.user_ID,
-        user_Name: um.name,
-        body: req.body.body,
-        images: savedImages,
-        subject: req.body.subject,
-        _id: qID,
-        //reason I didn't initialise comment or answer is because it used to create a default answer and comment
-      });
-      await question.save().then(async (data) => {
-        //automatic indexing of  question whenever it is posted
-        elastic.indexDoc(data.body, data._id);
-        //inserting asked question id to user model
-        const temp = um.asked_questions.concat([
-          { questionID: data._id.valueOf() },
-        ]);
-        um.asked_questions = temp;
-        await um.save();
 
-        res.json(data);
-      });
+      body = req.body;
+
+      //finding user
+      const um = await userModel.findOne({ user_ID: body.user_ID });
+
+      //creating question
+      await questionModel
+        .create({
+          user_ID: body.user_ID,
+          user_Name: um.name,
+          body: body.body,
+          images: savedImages,
+          _id: qID,
+          //reason I didn't initialise comment or answer is because it used to create a default answer and comment
+        })
+        .then(async (data) => {
+          //automatic indexing of  question whenever it is posted
+          elastic.indexDoc(data.body, data._id);
+          //inserting asked question id to user model
+          const temp = um.asked_questions.concat([
+            { questionID: data._id.valueOf() },
+          ]);
+          um.asked_questions = temp;
+          await um.save();
+
+          res.json(data);
+        });
     });
   } catch (err) {
     res.json({ message: "error" });
@@ -176,11 +178,8 @@ const answerQ = asyncHandler(async (req, res) => {
         const savedImage = await newImage.save();
         savedImages.push(savedImage._id);
       }
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
+      const body = req.body;
+      const um = await userModel.find({ user_ID: body.user_ID });
       await questionModel
         .updateOne(
           { _id: req.params.qid }, // this line is to find the question with the id
@@ -188,8 +187,8 @@ const answerQ = asyncHandler(async (req, res) => {
             $push: {
               answers: [
                 {
-                  body: req.body.body,
-                  user_ID: req.user_ID,
+                  body: body.body,
+                  user_ID: body.user_ID,
                   user_Name: um.name,
                   images: savedImages,
                 },
@@ -213,60 +212,39 @@ const answerQ = asyncHandler(async (req, res) => {
 //this  is because we keep track of  upvotes so that it cannot happen twice .. so no point of comments
 const commentQ = asyncHandler(async (req, res) => {
   try {
-    upload.array("images", 10)(req, res, async function (err) {
-      if (err) {
-        return res
-          .status(500)
-          .json({ error: "An error occurred while uploading the image" });
-      }
-      //get the images from request
-      const images = req.files;
-      //initiliaze ann array and store the id of the images
-      const savedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const newImage = new imageModel({
-          filename: image.filename,
-          path: image.path,
-        });
-        const savedImage = await newImage.save();
-        savedImages.push(savedImage._id);
-      }
-      const cID = new mongoose.Types.ObjectId();
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
-      await questionModel
-        .updateOne(
-          { _id: req.params.qid },
-          {
-            $push: {
-              comments: [
-                {
-                  _id: cID,
-                  body: req.body.body,
-                  user_ID: req.user_ID,
-                  user_Name: um.name,
-                  images: savedImages,
-                },
-              ],
-            },
-          }
-        )
-        .then(async (data) => {
-          console.log(cID.valueOf());
-          //inserting posted comment id to user model
+    const cID = new mongoose.Types.ObjectId();
+    const um = await userModel
+      .findOne()
+      .where("user_ID")
+      .equals(req.user_ID)
+      .exec();
+    await questionModel
+      .updateOne(
+        { _id: req.params.qid },
+        {
+          $push: {
+            comments: [
+              {
+                _id: cID,
+                body: req.body.body,
+                user_ID: req.user_ID,
+                user_Name: um.name,
+              },
+            ],
+          },
+        }
+      )
+      .then(async (data) => {
+        console.log(cID.valueOf());
+        //inserting posted comment id to user model
 
-          const temp = um.question_comments.concat([
-            { questionID: req.params.qid, commentID: cID.valueOf() },
-          ]);
-          um.question_comments = temp;
-          await um.save();
-          res.json(data);
-        });
-    });
+        const temp = um.question_comments.concat([
+          { questionID: req.params.qid, commentID: cID.valueOf() },
+        ]);
+        um.question_comments = temp;
+        await um.save();
+        res.json(data);
+      });
   } catch (err) {
     res.json({ message: "error" });
   }
@@ -275,70 +253,49 @@ const commentQ = asyncHandler(async (req, res) => {
 //commenting on an answer, qid= question id and aid is answer id
 const commentA = asyncHandler(async (req, res) => {
   try {
-    upload.array("images", 10)(req, res, async function (err) {
-      if (err) {
-        return res
-          .status(500)
-          .json({ error: "An error occurred while uploading the image" });
-      }
-      //get the images from request
-      const images = req.files;
-      //initiliaze ann array and store the id of the images
-      const savedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const newImage = new imageModel({
-          filename: image.filename,
-          path: image.path,
-        });
-        const savedImage = await newImage.save();
-        savedImages.push(savedImage._id);
-      }
-      const cID = new mongoose.Types.ObjectId();
-      const um = await userModel
-        .findOne()
-        .where("user_ID")
-        .equals(req.user_ID)
-        .exec();
-      await questionModel
-        .updateOne(
-          { _id: req.params.qid },
-          {
-            $push: {
-              "answers.$[j].comments": [
-                {
-                  _id: cID,
-                  body: req.body.body,
-                  user_ID: req.user_ID,
-                  user_Name: um.name,
-                  images: savedImages,
-                },
-              ],
-            },
-          }, // j is the index of the answer in the array
-          {
-            arrayFilters: [
-              // arrayFilters is used to specify which elements to update in the array
+    const cID = new mongoose.Types.ObjectId();
+    const um = await userModel
+      .findOne()
+      .where("user_ID")
+      .equals(req.user_ID)
+      .exec();
+    await questionModel
+      .updateOne(
+        { _id: req.params.qid },
+        {
+          $push: {
+            "answers.$[j].comments": [
               {
-                "j._id": req.params.aid,
+                _id: cID,
+                body: req.body.body,
+                user_ID: req.user_ID,
+                user_Name: um.name,
               },
             ],
-          }
-        )
-        .then(async (data) => {
-          //inserting posted comments in user model
-          const temp = um.answer_comments.concat([
+          },
+        }, // j is the index of the answer in the array
+        {
+          arrayFilters: [
+            // arrayFilters is used to specify which elements to update in the array
             {
-              questionID: req.params.qid,
-              answerID: req.params.aid,
-              commentID: cID.valueOf(),
+              "j._id": req.params.aid,
             },
-          ]);
-          um.answer_comments = temp;
-          await um.save();
-          res.json(data);
-        });
-    });
+          ],
+        }
+      )
+      .then(async (data) => {
+        //inserting posted comments in user model
+        const temp = um.answer_comments.concat([
+          {
+            questionID: req.params.qid,
+            answerID: req.params.aid,
+            commentID: cID.valueOf(),
+          },
+        ]);
+        um.answer_comments = temp;
+        await um.save();
+        res.json(data);
+      });
   } catch (err) {
     res.send(err);
   }
