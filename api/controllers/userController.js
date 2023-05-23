@@ -59,13 +59,13 @@ const loginUser = asyncHandler(async (req, res) => {
     const role = foundUser.role;
     const userINFO = { user_ID: foundUser.user_ID, role: role };
     const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-      expiresIn: "18s",
+      expiresIn: "30s",
     }); //generating new accessToken
     //To accesss inner contents of accessToken in front end we will need jwt decode ...
     const newRefreshToken = jwt.sign(
       userINFO,
       process.env.REFRESH_TOKEN_SECRET,
-      { expiresIn: "86400s" }
+      { expiresIn: "1d" }
     ); //generating new refreshToken
 
     //if we find existing cookie on this device we move it
@@ -169,7 +169,7 @@ const refreshUser = asyncHandler( async (req, res) => {
       const role = foundUser.role; 
       const userINFO = { user_ID: foundUser.user_ID, role: role };
       const accessToken = jwt.sign(userINFO, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "1800s",
+        expiresIn: "30s",
       }); //generating new access token
       //refresh token rotation
       const newRefreshToken = jwt.sign(
@@ -187,11 +187,13 @@ const refreshUser = asyncHandler( async (req, res) => {
         sameSite: "none",
       });
       console.log("Successful regeneration of tokens");
-      res.json(accessToken); //sending the new access token
+      res.json({ accessToken : accessToken });
+       //sending the new access token
     }
   ); 
   
 });
+ 
 
 //logging out
 //refreshing user
