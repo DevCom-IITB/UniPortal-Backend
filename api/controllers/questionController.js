@@ -33,23 +33,27 @@ const postQuestion = asyncHandler(async (req, res) => {
     //upload a max 0f 10 images with a question
     upload.array("images", 10)(req, res, async function (err) {
       if (err) {
+        console.log(err);
         return res
           .status(500)
-          .json({ error: "An error occurred while uploading the image" });
+          .json(req.body);
       }
       //get the images from request
       const images = req.files;
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const newImage = new imageModel({
-          filename: image.filename,
-          path: image.path,
-        });
-        await newImage.save();
-        savedImages.push(image.filename);
+      if(images){
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          const newImage = new imageModel({
+            filename: image.filename,
+            path: image.path,
+          });
+          await newImage.save();
+          savedImages.push(image.filename);
+        }
       }
+      
       //save the images to the question model
 
       body = req.body;
