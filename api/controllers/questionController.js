@@ -135,6 +135,32 @@ const allQuestions = asyncHandler(async (req, res) => {
     .catch((err) => res.send(err));
 });
 
+//gets all my asked questions
+const MyQuestions = asyncHandler(async (req, res) => {
+  await questionModel
+    .find({ user_ID : req.body.user_ID, hidden: false })
+    .sort({ upvotes: -1 })
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+
+//gets all not my questions
+const OtherQuestions = asyncHandler(async (req, res) => {
+  await questionModel
+    .find({ user_ID : { $ne : req.body.user_ID }, hidden: false })
+    .sort({ upvotes: -1 })
+    .then((data) => {
+      res.json(data);
+    })
+    .catch((err) => {
+      res.send(err);
+    });
+});
+
 //gets only answered questions along with answers
 const answeredQuestions = asyncHandler(async (req, res) => {
   await questionModel
@@ -465,6 +491,8 @@ const hideAC = asyncHandler(async (req, res) => {
 module.exports = {
   postQuestion,
   allQuestions,
+  MyQuestions,
+  OtherQuestions,
   answeredQuestions,
   unansweredQuestions,
   answerQ,

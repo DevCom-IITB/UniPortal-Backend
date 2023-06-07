@@ -6,6 +6,8 @@ const ROLES_LIST = require("../../config/roles_list");
 const {
   postQuestion,
   allQuestions,
+  MyQuestions,
+  OtherQuestions,
   answeredQuestions,
   unansweredQuestions,
   answerQ,
@@ -29,7 +31,19 @@ router
   );
 router
   .route("/post")
-  .post(verifyRoles(ROLES_LIST.STUDENT, ROLES_LIST.Admin), postQuestion); //testing
+  .post(verifyRoles(ROLES_LIST.STUDENT, ROLES_LIST.Admin), postQuestion);
+router
+  .route("/myQ")
+  .get(
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    MyQuestions
+  );
+router
+  .route("/otherQ")
+  .get(
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    OtherQuestions
+  );
 router
   .route("/answeredQ")
   .get(
