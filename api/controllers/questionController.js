@@ -254,11 +254,9 @@ const answerQ = asyncHandler(async (req, res) => {
 const commentQ = asyncHandler(async (req, res) => {
   try {
     const cID = new mongoose.Types.ObjectId();
-    const um = await userModel
-      .findOne()
-      .where("user_ID")
-      .equals(req.user_ID)
-      .exec();
+    const body = req.body['comments'];
+    const um = await userModel.findOne({ user_ID: body.user_ID });
+    console.log('user model', um);
     await questionModel
       .updateOne(
         { _id: req.params.qid },
@@ -287,6 +285,7 @@ const commentQ = asyncHandler(async (req, res) => {
         res.json(data);
       });
   } catch (err) {
+    console.log(err);
     res.json({ message: "error" });
   }
 });
