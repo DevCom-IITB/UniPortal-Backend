@@ -84,7 +84,7 @@ const loginUser = asyncHandler(async (req, res) => {
         await foundUser.save().catch((err) => console.log(err));
         throw new Error("Detected tampering with cookies");
       }
-      res.clearCookie("jwt", { httpOnly: true, sameSite: "None" });
+      res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
     }
     foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
     await foundUser
@@ -95,6 +95,7 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
       sameSite: "none",
+      secure: true,
     });
     res.json({ accessToken: accessToken }); // and we send the access token as a request
   } else {
@@ -118,7 +119,7 @@ const refreshUser = asyncHandler(async (req, res) => {
   if (!cookies?.jwt)
     return res.status(401).json({ message: "No Refresh Token Found" });
   const refreshToken = cookies.jwt; //if jwt in cookie exists we extract the refresh token from it
-  res.clearCookie("jwt", { httpOnly: true, sameSite: "None" }); //after extarcting the refresh token we remove it
+  res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true }); //after extarcting the refresh token we remove it
 
   //we find the user who has that particular refresh token
   const foundUser = await userModel.findOne({ refreshToken });
@@ -140,7 +141,7 @@ const refreshUser = asyncHandler(async (req, res) => {
         await hackedUser.save();
       }
     );
-    throw new Error("Cookie not found");
+    return res.status(401).json({ message: "user not found" });
   }
 
   //proceeds only if user was found else user needs to log back again to all of its devices
@@ -185,6 +186,7 @@ const refreshUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         sameSite: "none",
+        secure: true,
       });
       console.log("Successful regeneration of tokens");
       res.json({ accessToken: accessToken });
@@ -214,5 +216,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   console.log("works");
   res.json({ message: "Cookie removed" });
 });
+
+
 
 module.exports = { registerUser, loginUser, refreshUser, logoutUser };

@@ -10,6 +10,15 @@ const cors = require("cors");
 connectDB();
 const app = express();
 
+// Enable CORS
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Set-Cookie');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  next();
+});
+
 //middlewares
 app.use(bodyParser.json()); 
 app.use(express.json());

@@ -23,6 +23,7 @@ const AnswerSchema = mongoose.Schema({
   images: [{ type: String }],
   hidden: { type: Boolean, default: false },
   comments: [commentSchema],
+  verified : {type : Boolean, default : false}
 });
 
 //question schema
@@ -40,6 +41,7 @@ const QuestionSchema = mongoose.Schema({
   hidden: { type: Boolean, default: false },
   answers: [AnswerSchema],
   comments: [commentSchema],
+  verified : {type : Boolean, default : false}
 });
 
 //create model of the schema

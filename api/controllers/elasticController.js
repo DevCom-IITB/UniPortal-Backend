@@ -31,7 +31,7 @@ const searchDoc = asyncHandler(async (req, res) => {
               fuzzy: {
                 doc_title: {
                   value: a,
-                  fuzziness: 2,
+                  fuzziness: 3,
                 },
               },
             },
@@ -56,9 +56,9 @@ const indexDoc = async (body, id) => {
       },
     })
     .catch((err) => {
+      console.log("error while indexing");
       console.log(err);
     });
-  console.log("success");
 };
 
 const deleteDoc = async (id) => {

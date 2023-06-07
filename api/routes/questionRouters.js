@@ -24,7 +24,7 @@ const {
 router
   .route("/")
   .get(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    // verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
     allQuestions
   );
 router

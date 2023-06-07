@@ -73,7 +73,8 @@ const postQuestion = asyncHandler(async (req, res) => {
         })
         .then(async (data) => {
           //automatic indexing of  question whenever it is posted
-          elastic.indexDoc(data.body, data._id);
+          // elastic.indexDoc(data.body, data._id, res);
+          // console.log("we have indexed the question");
           //inserting asked question id to user model
           const temp = um.asked_questions.concat([
             { questionID: data._id.valueOf() },
@@ -173,17 +174,26 @@ const answerQ = asyncHandler(async (req, res) => {
       const images = req.files;
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const newImage = new imageModel({
-          filename: image.filename,
-          path: image.path,
-        });
-        await newImage.save();
-        savedImages.push(image.filename);
+      if(images){
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          const newImage = new imageModel({
+            filename: image.filename,
+            path: image.path,
+          });
+          await newImage.save();
+          savedImages.push(image.filename);
+        }
       }
-      const body = req.body;
-      const um = await userModel.find({ user_ID: body.user_ID });
+      
+      const body = req.body['answers'];
+      console.log('body', body);
+      const um = await userModel.findOne({ user_ID: body.user_ID });
+      console.log('user model', um);
+      let verified = false;
+      if(um.role === 5980){
+        verified = true;
+      }
       await questionModel
         .updateOne(
           { _id: req.params.qid }, // this line is to find the question with the id
@@ -195,6 +205,7 @@ const answerQ = asyncHandler(async (req, res) => {
                   user_ID: body.user_ID,
                   user_Name: um.name,
                   images: savedImages,
+                  verified: verified,
                 },
               ],
             },
