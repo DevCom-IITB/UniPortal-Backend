@@ -348,7 +348,7 @@ const upvoteQ = asyncHandler(async (req, res) => {
   const um = await userModel
     .findOne()
     .where("user_ID")
-    .equals(req.user_ID)
+    .equals(req.body.user_ID)
     .exec();
   //ensure each user can upvote only once
   if (
