@@ -10,6 +10,7 @@ const commentSchema = mongoose.Schema({
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
   hidden: { type: Boolean, default: false },
+  asked_At: { type: Date, default: Date.now },
 });
 
 //answer schema..
@@ -23,7 +24,8 @@ const AnswerSchema = mongoose.Schema({
   images: [{ type: String }],
   hidden: { type: Boolean, default: false },
   comments: [commentSchema],
-  verified : {type : Boolean, default : false}
+  verified : {type : Boolean, default : false},
+  asked_At: { type: Date, default: Date.now },
 });
 
 //question schema

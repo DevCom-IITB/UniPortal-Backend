@@ -265,8 +265,8 @@ const commentQ = asyncHandler(async (req, res) => {
             comments: [
               {
                 _id: cID,
-                body: req.body.body,
-                user_ID: req.user_ID,
+                body: body.body,
+                user_ID: body.user_ID,
                 user_Name: um.name,
               },
             ],
@@ -294,10 +294,11 @@ const commentQ = asyncHandler(async (req, res) => {
 const commentA = asyncHandler(async (req, res) => {
   try {
     const cID = new mongoose.Types.ObjectId();
+    const body = req.body['answers']['comments'];
     const um = await userModel
       .findOne()
       .where("user_ID")
-      .equals(req.user_ID)
+      .equals(body.user_ID)
       .exec();
     await questionModel
       .updateOne(
@@ -307,8 +308,8 @@ const commentA = asyncHandler(async (req, res) => {
             "answers.$[j].comments": [
               {
                 _id: cID,
-                body: req.body.body,
-                user_ID: req.user_ID,
+                body: body.body,
+                user_ID: body.user_ID,
                 user_Name: um.name,
               },
             ],
