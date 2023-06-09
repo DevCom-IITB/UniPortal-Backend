@@ -141,6 +141,35 @@ const MyQuestions = asyncHandler(async (req, res) => {
     .find({ user_ID : req.body.user_ID, hidden: false })
     .sort({ upvotes: -1 })
     .then((data) => {
+      //not sending hidden comments
+      let temp = [];
+      data.forEach((elm) => {
+        temp = [];
+        elm.comments.forEach((em) => {
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.comments = temp;
+      });
+      //not sending hidden answers and hidden comments within answers
+      data.forEach((elm) => {
+        temp = [];
+        elm.answers.forEach((em) => {
+          let temp1 = [];
+          em.comments.forEach((emm) => {
+            if (emm.hidden == false) temp1.push(emm);
+          });
+          em.comments = temp1;
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.answers = temp;
+      });
+
       res.json(data);
     })
     .catch((err) => {
@@ -154,6 +183,35 @@ const OtherQuestions = asyncHandler(async (req, res) => {
     .find({ user_ID : { $ne : req.body.user_ID }, hidden: false })
     .sort({ upvotes: -1 })
     .then((data) => {
+      //not sending hidden comments
+      let temp = [];
+      data.forEach((elm) => {
+        temp = [];
+        elm.comments.forEach((em) => {
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.comments = temp;
+      });
+      //not sending hidden answers and hidden comments within answers
+      data.forEach((elm) => {
+        temp = [];
+        elm.answers.forEach((em) => {
+          let temp1 = [];
+          em.comments.forEach((emm) => {
+            if (emm.hidden == false) temp1.push(emm);
+          });
+          em.comments = temp1;
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.answers = temp;
+      });
+
       res.json(data);
     })
     .catch((err) => {
@@ -167,6 +225,36 @@ const answeredQuestions = asyncHandler(async (req, res) => {
     .find({ status: true, hidden: false })
     .sort({ upvotes: -1 })
     .then((data) => {
+      //not sending hidden comments
+      let temp = [];
+      data.forEach((elm) => {
+        temp = [];
+        elm.comments.forEach((em) => {
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.comments = temp;
+      });
+      //not sending hidden answers and hidden comments within answers
+      data.forEach((elm) => {
+        temp = [];
+        elm.answers.forEach((em) => {
+          let temp1 = [];
+          em.comments.forEach((emm) => {
+            if (emm.hidden == false) temp1.push(emm);
+          });
+          em.comments = temp1;
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.answers = temp;
+      });
+
+
       res.json(data);
     })
     .catch((err) => {
@@ -180,6 +268,35 @@ const unansweredQuestions = asyncHandler(async (req, res) => {
     .find({ status: false, hidden: false })
     .sort({ upvotes: -1 })
     .then((data) => {
+      //not sending hidden comments
+      let temp = [];
+      data.forEach((elm) => {
+        temp = [];
+        elm.comments.forEach((em) => {
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.comments = temp;
+      });
+      //not sending hidden answers and hidden comments within answers
+      data.forEach((elm) => {
+        temp = [];
+        elm.answers.forEach((em) => {
+          let temp1 = [];
+          em.comments.forEach((emm) => {
+            if (emm.hidden == false) temp1.push(emm);
+          });
+          em.comments = temp1;
+          if (em.hidden === false) {
+            console.log(em);
+            temp.push(em);
+          }
+        });
+        elm.answers = temp;
+      });
+
       res.json(data);
     })
     .catch((err) => {
@@ -356,7 +473,7 @@ const upvoteQ = asyncHandler(async (req, res) => {
       .length >= 1
   ) {
     console.log("Already upvoted question");
-    res.json({ message: "Already upvoted" });
+    res.status(401).json({ message: "Already upvoted" });
   } else {
     await questionModel
       .updateOne({ _id: req.params.qid }, { $inc: { upvotes: 1 } })
@@ -376,7 +493,7 @@ const upvoteA = asyncHandler(async (req, res) => {
   const um = await userModel
     .findOne()
     .where("user_ID")
-    .equals(req.user_ID)
+    .equals(req.body.user_ID)
     .exec();
   //ensures each user can upvote only once
   if (
@@ -413,7 +530,7 @@ const upvoteA = asyncHandler(async (req, res) => {
 //hiding stuff
 //hiding question
 const hideQ = asyncHandler(async (req, res) => {
-  elastic.deleteDoc(req.params.qid);
+  // elastic.deleteDoc(req.params.qid);
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden: true } })
     .then((data) => res.json(update))
@@ -435,7 +552,10 @@ const hideA = asyncHandler(async (req, res) => {
         ],
       }
     )
-    .then((data) => res.json(update))
+    .then((data) => {
+      console.log("hid answer");
+      res.json(update)
+    })
     .catch((err) => res.send(err));
 });
 
