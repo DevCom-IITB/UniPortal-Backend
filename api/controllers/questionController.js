@@ -40,6 +40,7 @@ const postQuestion = asyncHandler(async (req, res) => {
       }
       //get the images from request
       const images = req.files;
+      console.log('images :', images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
       if(images){
@@ -57,10 +58,10 @@ const postQuestion = asyncHandler(async (req, res) => {
       //save the images to the question model
 
       body = req.body;
-
+      console.log('body :', body);
       //finding user
       const um = await userModel.findOne({ user_ID: body.user_ID });
-
+      console.log('user found', um);
       //creating question
       await questionModel
         .create({
@@ -139,7 +140,7 @@ const allQuestions = asyncHandler(async (req, res) => {
 const MyQuestions = asyncHandler(async (req, res) => {
   await questionModel
     .find({ user_ID : req.body.user_ID, hidden: false })
-    .sort({ upvotes: -1 })
+    .sort({ upvotes: -1, createdAt: -1 })
     .then((data) => {
       //not sending hidden comments
       let temp = [];
@@ -181,7 +182,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
 const OtherQuestions = asyncHandler(async (req, res) => {
   await questionModel
     .find({ user_ID : { $ne : req.body.user_ID }, hidden: false })
-    .sort({ upvotes: -1 })
+    .sort({ upvotes: -1, createdAt: -1 })
     .then((data) => {
       //not sending hidden comments
       let temp = [];
@@ -222,39 +223,9 @@ const OtherQuestions = asyncHandler(async (req, res) => {
 //gets only answered questions along with answers
 const answeredQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ status: true, hidden: false })
-    .sort({ upvotes: -1 })
+    .find({ status: true })
+    .sort({ upvotes: -1, createdAt: -1 })
     .then((data) => {
-      //not sending hidden comments
-      let temp = [];
-      data.forEach((elm) => {
-        temp = [];
-        elm.comments.forEach((em) => {
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
-        });
-        elm.comments = temp;
-      });
-      //not sending hidden answers and hidden comments within answers
-      data.forEach((elm) => {
-        temp = [];
-        elm.answers.forEach((em) => {
-          let temp1 = [];
-          em.comments.forEach((emm) => {
-            if (emm.hidden == false) temp1.push(emm);
-          });
-          em.comments = temp1;
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
-        });
-        elm.answers = temp;
-      });
-
-
       res.json(data);
     })
     .catch((err) => {
@@ -265,38 +236,9 @@ const answeredQuestions = asyncHandler(async (req, res) => {
 //gets all unanswered questions
 const unansweredQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ status: false, hidden: false })
-    .sort({ upvotes: -1 })
+    .find({ status: false })
+    .sort({ upvotes: -1, createdAt: -1 })
     .then((data) => {
-      //not sending hidden comments
-      let temp = [];
-      data.forEach((elm) => {
-        temp = [];
-        elm.comments.forEach((em) => {
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
-        });
-        elm.comments = temp;
-      });
-      //not sending hidden answers and hidden comments within answers
-      data.forEach((elm) => {
-        temp = [];
-        elm.answers.forEach((em) => {
-          let temp1 = [];
-          em.comments.forEach((emm) => {
-            if (emm.hidden == false) temp1.push(emm);
-          });
-          em.comments = temp1;
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
-        });
-        elm.answers = temp;
-      });
-
       res.json(data);
     })
     .catch((err) => {
@@ -309,12 +251,14 @@ const answerQ = asyncHandler(async (req, res) => {
   try {
     upload.array("images", 10)(req, res, async function (err) {
       if (err) {
+        console.log(err);
         return res
           .status(500)
           .json({ error: "An error occurred while uploading the image" });
       }
       //get the images from request
       const images = req.files;
+      console.log('images', images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
       if(images){

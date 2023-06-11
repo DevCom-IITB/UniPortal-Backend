@@ -11,6 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@elastic/elasticsearch": "^8.7.0",
+    "axios": "^1.4.0",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
@@ -20,7 +21,8 @@
     "express-async-handler": "^1.2.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
-    "multer": "^1.4.5-lts.1"
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^3.3.1"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"

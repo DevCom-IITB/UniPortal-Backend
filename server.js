@@ -34,7 +34,7 @@ app.use(
   require("./api/routes/questionRouters"),
   express.static("uploads")
 );
-app.use("/info", require("./api/routes/infopostroutes"));
+app.use("/info", require("./api/routes/infopostroutes"),express.static("uploads"));
 app.use("/search", require("./api/routes/elasticRouters"));
 
 //listening to port 5000 by default

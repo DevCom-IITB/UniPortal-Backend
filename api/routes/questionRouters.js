@@ -34,13 +34,13 @@ router
   .post(verifyRoles(ROLES_LIST.STUDENT, ROLES_LIST.Admin), postQuestion);
 router
   .route("/myQ")
-  .get(
+  .put(
     verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
     MyQuestions
   );
 router
   .route("/otherQ")
-  .get(
+  .put(
     verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
     OtherQuestions
   );

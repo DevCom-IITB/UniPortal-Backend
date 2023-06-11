@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
+const axios = require('axios');
 
 //whenever we set or remove cookie use secure : true during deployment
 //DONT PUSH DONT PUSH DONT PUSH IN DEPLOYMENT
@@ -105,9 +106,54 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 //Add code for SMP login here
-//------------------------
-//------------------------
-//
+//Get auth code from SSO 
+//send request to gymkhana servers to get access token and refresh token
+//make another request to gymkhana to get user resources
+//send resources as response to the client
+const SMPLogin = asyncHandler(async (req, res) => {
+  const authCode = req.body.authCode;
+  console.log(authCode);
+
+  //send request to gymkhana servers to get access token and refresh token
+
+  const body = `code=${authCode}&grant_type=authorization_code&redirect_uri=https://localhost:8000/`
+
+  console.log('body is ', body);
+
+  const config = {
+    method : 'POST',
+    headers : {
+      'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8',
+      'Authorization' : 'Basic cEdFdG42bVI1d1pMMGdPYkhXMVZtSVdJOXd4cWpCSlZmRUFyUjlpeTp5QzB3RzY5QzBLWWduSjA3ajZ2WFJxSFBhOGYxZ1NKMkFKNVBlbFB2N3p3NjhCeGpleDc3dHY1UTlwQ1ZteUpEWmtYTWc2YXdidzBsdThzSGZLVEFxeDB1c2JVd1JMSXd6NllsN1Rzd3kzdFZxaXhqdWpwMFA3SGlhd1VPTGxHRw==' //this need to be added to the env file
+    },
+    url : 'https://gymkhana.iitb.ac.in/profiles/oauth/token/',
+    data : body
+  }
+  
+  const res1 = await axios(config)
+  const data = res1.data;
+  const accessToken = data.access_token;
+  const bearer = `Bearer ${accessToken}`;
+
+  console.log('bearer is ', bearer);
+
+  const config2 = {
+    method : 'GET',
+    url : 'https://gymkhana.iitb.ac.in/profiles/user/api/user/?fields=roll_number',
+    headers : {
+      'Authorization' : bearer
+    }
+  }
+
+  const res2 = await axios(config2)
+  const rollNumber = parseInt(res2.data.roll_number);
+  console.log('roll number is ', rollNumber);
+  return res.status(200).json({rollNumber : rollNumber})
+  
+
+
+
+});
 
 //for creating new access tokens once the old ones have expired
 //as well as implementing refresh token rotation
@@ -219,4 +265,4 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 
 
-module.exports = { registerUser, loginUser, refreshUser, logoutUser };
+module.exports = { registerUser, loginUser, SMPLogin, refreshUser, logoutUser };

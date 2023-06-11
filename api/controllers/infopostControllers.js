@@ -7,7 +7,7 @@ const path = require("path");
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "../uploads");
+    cb(null, "./uploads");
   },
   filename: function (req, file, cb) {
     cb(
@@ -23,6 +23,7 @@ const postinfopost = asyncHandler(async (req, res) => {
   try {
     upload.array("images", 10)(req, res, async function (err) {
       if (err) {
+        console.log(err);
         return res
           .status(500)
           .json({ error: "An error occurred while uploading the image" });
@@ -31,14 +32,16 @@ const postinfopost = asyncHandler(async (req, res) => {
       const images = req.files;
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      for (let i = 0; i < images.length; i++) {
-        const image = images[i];
-        const newImage = new imageModel({
-          filename: image.filename,
-          path: image.path,
-        });
-        await newImage.save();
-        savedImages.push(image.filename);
+      if(images){
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          const newImage = new imageModel({
+            filename: image.filename,
+            path: image.path,
+          });
+          await newImage.save();
+          savedImages.push(image.filename);
+        }
       }
       const infopost = new infopostModel({
         body: req.body.body,
