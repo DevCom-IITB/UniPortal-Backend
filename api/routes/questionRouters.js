@@ -16,6 +16,8 @@ const {
   upvoteQ,
   upvoteA,
   hideQ,
+  unhideQ,
+  unhideA,
   hideA,
   hideAC,
   hideC,
