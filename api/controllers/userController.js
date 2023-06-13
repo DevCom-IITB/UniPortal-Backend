@@ -246,13 +246,19 @@ const refreshUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   //get details from req
   const cookies = req.cookies;
-  if (!cookies?.jwt) return res.sendStatus(204);
+  if (!cookies?.jwt){
+    console.log("cookie not found");
+    return res.sendStatus(403);
+  }
   const refreshToken = cookies.jwt;
 
   //find the student from the database
   const foundUser = await userModel.findOne({ refreshToken });
   //check with the credentials
-  if (!foundUser) return res.sendStatus(204);
+  if (!foundUser){
+    console.log("user not found");
+    return res.sendStatus(403);
+  }
   foundUser.refreshToken = foundUser.refreshToken.filter(
     (rt) => rt !== refreshToken
   ); //basically we keep all the refresh tokens of other devices except our own one
