@@ -9,6 +9,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 connectDB();
 const app = express();
+const prefix = "/api";
 
 // Enable CORS
 app.use((req, res, next) => {
@@ -26,16 +27,16 @@ app.use(express.urlencoded({ extended: false })); //what is urlencoded?: https:/
 app.use(cookieParser()); 
 
 //All routing goes here
-app.use("/user", require("./api/routes/userRouters"));
+app.use(prefix + "/user", require("./api/routes/userRouters"));
 
 // app.use(authenticateToken);
 app.use(
-  "/question",
+  prefix + "/question",
   require("./api/routes/questionRouters"),
   express.static("uploads")
 );
-app.use("/info", require("./api/routes/infopostroutes"),express.static("uploads"));
-app.use("/search", require("./api/routes/elasticRouters"));
+app.use(prefix + "/info", require("./api/routes/infopostroutes"),express.static("uploads"));
+app.use(prefix + "/search", require("./api/routes/elasticRouters"));
 
 //listening to port 5000 by default
 app.listen(port, () => console.log(`Server running on port ${port}`));
