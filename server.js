@@ -9,7 +9,8 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 connectDB();
 const app = express();
-const prefix = "/api";
+// const prefix = "/api"; //comment out during dev
+const prefix = ""; //comment out for deployment
 
 // Enable CORS
 app.use((req, res, next) => {

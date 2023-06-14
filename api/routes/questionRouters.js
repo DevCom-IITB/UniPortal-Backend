@@ -49,13 +49,13 @@ router
 router
   .route("/answeredQ")
   .get(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP),
     answeredQuestions
   );
 router
   .route("/unansweredQ")
   .get(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP),
     unansweredQuestions
   );
 router

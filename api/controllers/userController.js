@@ -4,6 +4,10 @@ const userModel = require("../models/userModel");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const axios = require('axios');
+// const redirect_uri = process.env.SSO_REDIRECT_URI_DEV
+const redirect_uri = process.env.SSO_REDIRECT_URI_TEST
+const authenticateToken = process.env.SSO_AUTHENTICATION_TOKEN
+
 
 //whenever we set or remove cookie use secure : true during deployment
 //DONT PUSH DONT PUSH DONT PUSH IN DEPLOYMENT
@@ -113,10 +117,13 @@ const loginUser = asyncHandler(async (req, res) => {
 const SMPLogin = asyncHandler(async (req, res) => {
   const authCode = req.body.authCode;
   console.log(authCode);
+  console.log(redirect_uri);
+  console.log(authenticateToken);
+  console.log(`Basic ${authenticateToken}`);
 
   //send request to gymkhana servers to get access token and refresh token
 
-  const body = `code=${authCode}&grant_type=authorization_code&redirect_uri=https://localhost:8000/`
+  const body = `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirect_uri}`
 
   console.log('body is ', body);
 
@@ -124,7 +131,7 @@ const SMPLogin = asyncHandler(async (req, res) => {
     method : 'POST',
     headers : {
       'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8',
-      'Authorization' : 'Basic cEdFdG42bVI1d1pMMGdPYkhXMVZtSVdJOXd4cWpCSlZmRUFyUjlpeTp5QzB3RzY5QzBLWWduSjA3ajZ2WFJxSFBhOGYxZ1NKMkFKNVBlbFB2N3p3NjhCeGpleDc3dHY1UTlwQ1ZteUpEWmtYTWc2YXdidzBsdThzSGZLVEFxeDB1c2JVd1JMSXd6NllsN1Rzd3kzdFZxaXhqdWpwMFA3SGlhd1VPTGxHRw==' //this need to be added to the env file
+      'Authorization' : `Basic ${authenticateToken}`
     },
     url : 'https://gymkhana.iitb.ac.in/profiles/oauth/token/',
     data : body
@@ -132,6 +139,7 @@ const SMPLogin = asyncHandler(async (req, res) => {
   
   const res1 = await axios(config)
   const data = res1.data;
+  console.log(data);
   const accessToken = data.access_token;
   const bearer = `Bearer ${accessToken}`;
 
