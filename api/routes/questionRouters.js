@@ -37,43 +37,43 @@ router
 router
   .route("/myQ")
   .put(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT),
     MyQuestions
   );
 router
   .route("/otherQ")
   .put(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT),
     OtherQuestions
   );
 router
   .route("/answeredQ")
   .get(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP),
     answeredQuestions
   );
 router
   .route("/unansweredQ")
   .get(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP),
     unansweredQuestions
   );
 router
   .route("/answerQ/:qid")
   .patch(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP),
     answerQ
   );
 router
   .route("/commentQ/:qid")
   .patch(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT, ROLES_LIST.ISMP),
     commentQ
   );
 router
   .route("/commentA/:qid/:aid")
   .patch(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT, ROLES_LIST.ISMP),
     commentA
   );
 router
