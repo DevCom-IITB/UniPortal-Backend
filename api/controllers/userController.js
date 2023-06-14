@@ -154,7 +154,7 @@ const SMPLogin = asyncHandler(async (req, res) => {
   }
 
   const res2 = await axios(config2)
-  const rollNumber = parseInt(res2.data.roll_number);
+  const rollNumber = res2.data.roll_number;
   console.log('roll number is ', rollNumber);
   return res.status(200).json({rollNumber : rollNumber})
   
