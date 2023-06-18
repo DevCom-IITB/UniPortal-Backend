@@ -9,8 +9,9 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 connectDB();
 const app = express();
-const prefix = "/api"; //comment out during dev
-// const prefix = ""; //comment out for deployment
+const prefix = process.env.NODE_ENV == 'DEV' ? "" : "/api"; 
+
+
 
 // Enable CORS
 app.use((req, res, next) => {
@@ -40,4 +41,4 @@ app.use(prefix + "/info", require("./api/routes/infopostroutes"),express.static(
 app.use(prefix + "/search", require("./api/routes/elasticRouters"));
 
 //listening to port 5000 by default
-app.listen(port, () => console.log(`Server running on port ${port}`));
+app.listen(port, () => console.log(`Server running on port ${port}, On ${prefix}, In env ${process.env.NODE_ENV}` ));

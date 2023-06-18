@@ -4,8 +4,7 @@ const userModel = require("../models/userModel");
 require("dotenv").config();
 const jwt = require("jsonwebtoken");
 const axios = require('axios');
-// const redirect_uri = process.env.SSO_REDIRECT_URI_DEV
-const redirect_uri = process.env.SSO_REDIRECT_URI_TEST
+const redirect_uri = process.env.NODE_ENV == 'DEV' ? process.env.SSO_REDIRECT_URI_DEV : process.env.SSO_REDIRECT_URI_TEST
 const authenticateToken = process.env.SSO_AUTHENTICATION_TOKEN
 
 
