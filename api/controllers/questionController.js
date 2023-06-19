@@ -420,18 +420,25 @@ const upvoteQ = asyncHandler(async (req, res) => {
     console.log("Already upvoted question");
     console.log('unupvoting');
     upvote_val = -1;
-  } else {
+  }
     await questionModel
       .updateOne({ _id: req.params.qid }, { $inc: { upvotes: upvote_val } })
       .then(async (data) => {
-        const temp = um.upvoted_questions.concat([
-          { questionID: req.params.qid },
-        ]);
+        let temp;
+        if(upvote_val === -1){
+          temp = um.upvoted_questions.filter((elm) => elm["questionID"] !== req.params.qid);
+          console.log('removing upvote');
+        }
+        else{
+          temp = um.upvoted_questions.concat([
+            { questionID: req.params.qid },
+          ]);
+          console.log('adding upvote');
+        }
         um.upvoted_questions = temp;
         await um.save();
-        res.json(data);
+        res.json({ val : upvote_val });
       });
-  }
 });
 
 //upvoting answer
@@ -442,17 +449,19 @@ const upvoteA = asyncHandler(async (req, res) => {
     .equals(req.body.user_ID)
     .exec();
   //ensures each user can upvote only once
+  let upvote_val = 1;
   if (
     um.upvoted_answers.filter((elm) => elm.answerID === req.params.aid)
       .length >= 1
   ) {
     console.log("Already upvoted answer");
-    res.json({ message: "Already upvoted" });
-  } else {
+    console.log('unupvoting');
+    upvote_val = -1;
+  }
     await questionModel
       .updateOne(
         { _id: req.params.qid },
-        { $inc: { "answers.$[j].upvotes": 1 } }, // $inc is used to increment the value of a field
+        { $inc: { "answers.$[j].upvotes": upvote_val } }, // $inc is used to increment the value of a field
         {
           arrayFilters: [
             {
@@ -462,15 +471,22 @@ const upvoteA = asyncHandler(async (req, res) => {
         }
       )
       .then(async (data) => {
-        const temp = um.upvoted_answers.concat([
-          { questionID: req.params.qid, answerID: req.params.aid },
-        ]);
+        let temp;
+        if(upvote_val === -1){
+          temp = um.upvoted_answers.filter((elm) => elm.answerID !== req.params.aid);
+          console.log('removing upvote');
+        }
+        else{
+          temp = um.upvoted_answers.concat([
+            { questionID: req.params.qid, answerID: req.params.aid },
+          ]);
+          console.log('adding upvote');
+        }
         um.upvoted_answers = temp;
         await um.save();
-        res.json(data);
+        res.json({ val : upvote_val });
       })
       .catch((err) => res.send(err));
-  }
 });
 
 //hiding stuff

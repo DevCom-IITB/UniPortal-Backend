@@ -101,7 +101,7 @@ const loginUser = asyncHandler(async (req, res) => {
       sameSite: "none",
       secure: true,
     });
-    res.json({ accessToken: accessToken, role : foundUser.role }); // and we send the access token as a request
+    res.json({ accessToken: accessToken, role : foundUser.role, name : foundUser.name }); // and we send the access token as a request
   } else {
     res.status(400);
     throw new Error("Invalid Credentials");
@@ -242,7 +242,7 @@ const refreshUser = asyncHandler(async (req, res) => {
         secure: true,
       });
       console.log("Successful regeneration of tokens");
-      res.json({ accessToken: accessToken, role : foundUser.role, user_ID : foundUser.user_ID });
+      res.json({ accessToken: accessToken, role : foundUser.role, user_ID : foundUser.user_ID, name: foundUser.name });
       //sending the new access token
     }
   );
