@@ -59,11 +59,48 @@ const postinfopost = asyncHandler(async (req, res) => {
 
 const getinfopost = asyncHandler(async (req, res) => {
   try {
-    const infopost = await infopostModel.find().populate("images");
+    const infopost = await infopostModel.find().populate("images").sort({asked_At: -1});
     res.json(infopost);
   } catch (err) {
     res.json({ message: "error" });
   }
 });
 
-module.exports = { postinfopost, getinfopost };
+// a function to hide an infopost
+const hideinfopost = asyncHandler(async (req, res) => {
+  try {
+    const infopost = await infopostModel.findById(req.params.id);
+    
+    if(!infopost){
+      return res.status(404).json({ message: "infopost not found" });
+    }
+
+    const updatedHidden = ! infopost.hidden;
+
+    await infopostModel
+      .updateOne({ _id: req.params.id },{ $set: { hidden: updatedHidden }})
+      .then((data) => res.json(data));
+
+  } catch (err) {
+    res.json({ message: "error" });
+  }
+});
+
+//a function to edit infopost
+const editinfopost = asyncHandler(async (req, res) => {
+  try {
+    const infopost = await infopostModel.findById(req.params.id);
+    if(!infopost){
+      return res.status(404).json({ message: "infopost not found" });
+    }
+    const updatedinfopost = await infopostModel
+      .updateOne({ _id: req.params.id },{ $set: { body: req.body.body }})
+      .then((data) => res.json(data));
+
+  } catch (err) {
+    res.json({ message: "error" });
+  }
+});
+
+
+module.exports = { postinfopost, getinfopost, hideinfopost, editinfopost };

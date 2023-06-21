@@ -503,7 +503,7 @@ const hideQ = asyncHandler(async (req, res) => {
 
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden : updatedHidden } })
-    .then((data) => res.json(update))
+    .then((data) => res.json(data))
     .catch((err) => res.send(err));
 });
 
@@ -522,9 +522,6 @@ const hideA = asyncHandler(async (req, res) => {
   const answerIndex = question.answers.findIndex((answer) => answer._id == answerId);
   console.log('Answer index:', answerIndex);
 
-  // if (answerIndex === -1) {
-  //   return res.status(404).json({ error: 'Answer not found' });
-  // }
 
   console.log('Current hidden value:', question.answers[answerIndex].hidden);
 
@@ -553,10 +550,21 @@ const hideA = asyncHandler(async (req, res) => {
 //
 //hiding comment
 const hideC = asyncHandler(async (req, res) => {
-  try {
-    const update = await questionModel.updateOne(
+  const question = await questionModel.findById(req.params.qid);
+  console.log('question:', question);
+
+  if (!question) {
+    return res.status(404).json({ error: 'Question not found' });
+  }
+
+  const commentId = req.params.cid;
+  const commentIndex = question.comments.findIndex((comment) => comment._id == commentId);
+  console.log('Comment index:', commentIndex);
+
+  await questionModel
+    .updateOne(
       { _id: req.params.qid },
-      { $set: { "comments.$[j].hidden": true } },
+      { $set: { "comments.$[j].hidden": !question.comments[commentIndex].hidden } },
       {
         arrayFilters: [
           {
@@ -564,23 +572,35 @@ const hideC = asyncHandler(async (req, res) => {
           },
         ],
       }
-    );
-    res.json(update);
-  } catch (err) {
-    res.send(err);
-  }
+    )
+    .then((data) => {
+      console.log("hid comment");
+      res.json(update)
+    })
+    .catch((err) => res.send(err));
 });
 
 //hiding comment inside an answer
 const hideAC = asyncHandler(async (req, res) => {
-  try {
-    const update = await questionModel.updateOne(
+  const question = await questionModel.findById(req.params.qid);
+  console.log('question:', question);
+
+  if (!question) {
+    return res.status(404).json({ error: 'Question not found' });
+  }
+
+  const answerId = req.params.aid;
+  const answerIndex = question.answers.findIndex((answer) => answer._id == answerId);
+  console.log('Answer index:', answerIndex);
+
+  const commentId = req.params.cid;
+  const commentIndex = question.answers[answerIndex].comments.findIndex((comment) => comment._id == commentId);
+  console.log('Comment index:', commentIndex);
+
+  await questionModel
+    .updateOne(
       { _id: req.params.qid },
-      {
-        $set: {
-          "answers.$[j].comments.$[i].hidden": true,
-        },
-      },
+      { $set: { "answers.$[j].comments.$[i].hidden": !question.answers[answerIndex].comments[commentIndex].hidden } },
       {
         arrayFilters: [
           {
@@ -591,11 +611,12 @@ const hideAC = asyncHandler(async (req, res) => {
           },
         ],
       }
-    );
-    res.json(update);
-  } catch (err) {
-    res.send(err);
-  }
+    )
+    .then((data) => {
+      console.log("hid comment");
+      res.json(data) 
+    })
+    .catch((err) => res.send(err));
 });
 
 //exporting
