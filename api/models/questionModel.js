@@ -6,7 +6,7 @@ const imageModel = require("./imageModel");
 //comment schema
 const commentSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
-  user_ID: { type: Number, required: true },
+  user_ID: { type: String, required: true },
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
   hidden: { type: Boolean, default: false },
@@ -16,7 +16,7 @@ const commentSchema = mongoose.Schema({
 //answer schema..
 const AnswerSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
-  user_ID: { type: Number, required: true },
+  user_ID: { type: String, required: true },
   user_Name: { type: String, default: "" },
   body: { type: String, required: true },
   upvotes: { type: Number, default: 0 },
@@ -31,7 +31,7 @@ const AnswerSchema = mongoose.Schema({
 //question schema
 const QuestionSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
-  user_ID: { type: Number, required: true },
+  user_ID: { type: String, required: true },
   user_Name: { type: String, default: "" },
   hidden: { type: Boolean, default: false },
   body: { type: String, required: true },
