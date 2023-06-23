@@ -16,8 +16,6 @@ const {
   upvoteQ,
   upvoteA,
   hideQ,
-  unhideQ,
-  unhideA,
   hideA,
   hideAC,
   hideC,
@@ -25,27 +23,19 @@ const {
 // const { uploadImage } = require("../controllers/imageController");
 
 //all the routings
-router
-  .route("/")
-  .get(
-    // verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
-    allQuestions
-  );
+router.route("/").get(
+  // verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
+  allQuestions
+);
 router
   .route("/post")
   .post(verifyRoles(ROLES_LIST.STUDENT, ROLES_LIST.Admin), postQuestion);
 router
   .route("/myQ")
-  .put(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT),
-    MyQuestions
-  );
+  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), MyQuestions);
 router
   .route("/otherQ")
-  .put(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT),
-    OtherQuestions
-  );
+  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), OtherQuestions);
 router
   .route("/answeredQ")
   .get(
@@ -67,13 +57,23 @@ router
 router
   .route("/commentQ/:qid")
   .patch(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT, ROLES_LIST.ISMP),
+    verifyRoles(
+      ROLES_LIST.Admin,
+      ROLES_LIST.SMP,
+      ROLES_LIST.STUDENT,
+      ROLES_LIST.ISMP
+    ),
     commentQ
   );
 router
   .route("/commentA/:qid/:aid")
   .patch(
-    verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT, ROLES_LIST.ISMP),
+    verifyRoles(
+      ROLES_LIST.Admin,
+      ROLES_LIST.SMP,
+      ROLES_LIST.STUDENT,
+      ROLES_LIST.ISMP
+    ),
     commentA
   );
 router

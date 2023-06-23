@@ -1,8 +1,5 @@
 const mongoose = require("mongoose");
 
-// import imageSchema
-const imageModel = require("./imageModel");
-
 //comment schema
 const commentSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
@@ -24,7 +21,7 @@ const AnswerSchema = mongoose.Schema({
   images: [{ type: String }],
   hidden: { type: Boolean, default: false },
   comments: [commentSchema],
-  verified : {type : Boolean, default : false},
+  verified: { type: Boolean, default: false },
   asked_At: { type: Date, default: Date.now },
 });
 
@@ -40,10 +37,9 @@ const QuestionSchema = mongoose.Schema({
   asked_At: { type: Date, default: Date.now },
   //images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
   images: [{ type: String }],
-  hidden: { type: Boolean, default: false },
   answers: [AnswerSchema],
   comments: [commentSchema],
-  verified : {type : Boolean, default : false}
+  verified: { type: Boolean, default: false },
 });
 
 //create model of the schema

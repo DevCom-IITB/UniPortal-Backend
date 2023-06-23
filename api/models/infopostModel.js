@@ -1,9 +1,5 @@
 const mongoose = require("mongoose");
 
-//import imageSchema
-
-const imageModel = require("../models/imageModel");
-
 //schema for infopost
 
 const infopostSchema = mongoose.Schema({
