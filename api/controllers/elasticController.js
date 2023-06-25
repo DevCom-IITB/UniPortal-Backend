@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler");
-const fs = require("fs");
+const dotenv = require("dotenv");
+dotenv.config();
 const { Client } = require("@elastic/elasticsearch");
 const client = new Client({
   node: process.env.ELASTIC_URI,

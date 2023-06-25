@@ -1,12 +1,15 @@
 const asyncHandler = require("express-async-handler"); //async-handler for handling errors in async functions
 const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
-require("dotenv").config();
+const dotenv = require("dotenv");
+dotenv.config();
 const jwt = require("jsonwebtoken");
-const axios = require('axios');
-const redirect_uri = process.env.NODE_ENV == 'DEV' ? process.env.SSO_REDIRECT_URI_DEV : process.env.SSO_REDIRECT_URI_TEST
-const authenticateToken = process.env.SSO_AUTHENTICATION_TOKEN
-
+const axios = require("axios");
+const redirect_uri =
+  process.env.NODE_ENV == "DEV"
+    ? process.env.SSO_REDIRECT_URI_DEV
+    : process.env.SSO_REDIRECT_URI_TEST;
+const authenticateToken = process.env.SSO_AUTHENTICATION_TOKEN;
 
 //whenever we set or remove cookie use secure : true during deployment
 //DONT PUSH DONT PUSH DONT PUSH IN DEPLOYMENT
@@ -88,12 +91,16 @@ const loginUser = asyncHandler(async (req, res) => {
         await foundUser.save().catch((err) => console.log(err));
         throw new Error("Detected tampering with cookies");
       }
-      res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+      res.clearCookie("jwt", {
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+      });
     }
     foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
     await foundUser
       .save()
-      .catch((err) => console.log("Couldnt save refresh token"));
+      .catch((err) => console.log("Couldnt save refresh token" + err));
     //We send the new refresh token as a cookie
     res.cookie("jwt", newRefreshToken, {
       httpOnly: true,
@@ -101,7 +108,11 @@ const loginUser = asyncHandler(async (req, res) => {
       sameSite: "none",
       secure: true,
     });
-    res.json({ accessToken: accessToken, role : foundUser.role, name : foundUser.name }); // and we send the access token as a request
+    res.json({
+      accessToken: accessToken,
+      role: foundUser.role,
+      name: foundUser.name,
+    }); // and we send the access token as a request
   } else {
     res.status(400);
     throw new Error("Invalid Credentials");
@@ -109,7 +120,7 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 //Add code for SMP login here
-//Get auth code from SSO 
+//Get auth code from SSO
 //send request to gymkhana servers to get access token and refresh token
 //make another request to gymkhana to get user resources
 //send resources as response to the client
@@ -122,44 +133,40 @@ const SMPLogin = asyncHandler(async (req, res) => {
 
   //send request to gymkhana servers to get access token and refresh token
 
-  const body = `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirect_uri}`
+  const body = `code=${authCode}&grant_type=authorization_code&redirect_uri=${redirect_uri}`;
 
-  console.log('body is ', body);
+  console.log("body is ", body);
 
   const config = {
-    method : 'POST',
-    headers : {
-      'Content-Type' : 'application/x-www-form-urlencoded; charset=UTF-8',
-      'Authorization' : `Basic ${authenticateToken}`
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+      Authorization: `Basic ${authenticateToken}`,
     },
-    url : 'https://gymkhana.iitb.ac.in/profiles/oauth/token/',
-    data : body
-  }
-  
-  const res1 = await axios(config)
+    url: "https://gymkhana.iitb.ac.in/profiles/oauth/token/",
+    data: body,
+  };
+
+  const res1 = await axios(config);
   const data = res1.data;
   console.log(data);
   const accessToken = data.access_token;
   const bearer = `Bearer ${accessToken}`;
 
-  console.log('bearer is ', bearer);
+  console.log("bearer is ", bearer);
 
   const config2 = {
-    method : 'GET',
-    url : 'https://gymkhana.iitb.ac.in/profiles/user/api/user/?fields=roll_number',
-    headers : {
-      'Authorization' : bearer
-    }
-  }
+    method: "GET",
+    url: "https://gymkhana.iitb.ac.in/profiles/user/api/user/?fields=roll_number",
+    headers: {
+      Authorization: bearer,
+    },
+  };
 
-  const res2 = await axios(config2)
+  const res2 = await axios(config2);
   const rollNumber = res2.data.roll_number;
-  console.log('roll number is ', rollNumber);
-  return res.status(200).json({rollNumber : rollNumber})
-  
-
-
-
+  console.log("roll number is ", rollNumber);
+  return res.status(200).json({ rollNumber: rollNumber });
 });
 
 //for creating new access tokens once the old ones have expired
@@ -234,7 +241,7 @@ const refreshUser = asyncHandler(async (req, res) => {
       foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken]; //we append everything to the refreshToken array in database
       await foundUser
         .save()
-        .catch((err) => console.log("Couldnt save refresh token"));
+        .catch((err) => console.log("Couldnt save refresh token" + err));
       res.cookie("jwt", newRefreshToken, {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
@@ -242,7 +249,12 @@ const refreshUser = asyncHandler(async (req, res) => {
         secure: true,
       });
       console.log("Successful regeneration of tokens");
-      res.json({ accessToken: accessToken, role : foundUser.role, user_ID : foundUser.user_ID, name: foundUser.name });
+      res.json({
+        accessToken: accessToken,
+        role: foundUser.role,
+        user_ID: foundUser.user_ID,
+        name: foundUser.name,
+      });
       //sending the new access token
     }
   );
@@ -253,7 +265,7 @@ const refreshUser = asyncHandler(async (req, res) => {
 const logoutUser = asyncHandler(async (req, res) => {
   //get details from req
   const cookies = req.cookies;
-  if (!cookies?.jwt){
+  if (!cookies?.jwt) {
     console.log("cookie not found");
     return res.sendStatus(403);
   }
@@ -262,7 +274,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   //find the student from the database
   const foundUser = await userModel.findOne({ refreshToken });
   //check with the credentials
-  if (!foundUser){
+  if (!foundUser) {
     console.log("user not found");
     return res.sendStatus(403);
   }
@@ -275,7 +287,5 @@ const logoutUser = asyncHandler(async (req, res) => {
   console.log("works");
   res.json({ message: "Cookie removed" });
 });
-
-
 
 module.exports = { registerUser, loginUser, SMPLogin, refreshUser, logoutUser };

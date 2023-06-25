@@ -1,6 +1,7 @@
+/* eslint-disable no-undef */
+const dotenv = require("dotenv");
+dotenv.config();
 const asyncHandler = require("express-async-handler"); // the function of async handler here is to handle errors in async functions. https://www.npmjs.com/package/express-async-handler
-const elastic = require("./elasticController");
-const e = require("express");
 const { default: mongoose } = require("mongoose");
 const path = require("path");
 // multer middleware for handling uploading images
@@ -41,7 +42,7 @@ const postQuestion = asyncHandler(async (req, res) => {
       console.log("images :", images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      if (images) {
+      if(images){
         for (let i = 0; i < images.length; i++) {
           const image = images[i];
           const newImage = new imageModel({
@@ -55,7 +56,7 @@ const postQuestion = asyncHandler(async (req, res) => {
 
       //save the images to the question model
 
-      body = req.body;
+      const body = req.body;
       console.log("body :", body);
       //finding user
       const um = await userModel.findOne({ user_ID: body.user_ID });
@@ -137,7 +138,7 @@ const allQuestions = asyncHandler(async (req, res) => {
 //gets all my asked questions
 const MyQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID: req.body.user_ID, hidden: false })
+    .find({ user_ID : req.body.user_ID })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments
@@ -168,7 +169,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
         });
         elm.answers = temp;
       });
-      console.log("hi");
+
       res.json(data);
     })
     .catch((err) => {
@@ -541,7 +542,7 @@ const hideA = asyncHandler(async (req, res) => {
         ],
       }
     )
-    .then((data) => {
+    .then(() => {
       console.log("hid answer");
       res.json(update);
     })
@@ -551,10 +552,27 @@ const hideA = asyncHandler(async (req, res) => {
 //
 //hiding comment
 const hideC = asyncHandler(async (req, res) => {
-  try {
-    const update = await questionModel.updateOne(
+  const question = await questionModel.findById(req.params.qid);
+  console.log("question:", question);
+
+  if (!question) {
+    return res.status(404).json({ error: "Question not found" });
+  }
+
+  const commentId = req.params.cid;
+  const commentIndex = question.comments.findIndex(
+    (comment) => comment._id == commentId
+  );
+  console.log("Comment index:", commentIndex);
+
+  await questionModel
+    .updateOne(
       { _id: req.params.qid },
-      { $set: { "comments.$[j].hidden": true } },
+      {
+        $set: {
+          "comments.$[j].hidden": !question.comments[commentIndex].hidden,
+        },
+      },
       {
         arrayFilters: [
           {
@@ -562,21 +580,42 @@ const hideC = asyncHandler(async (req, res) => {
           },
         ],
       }
-    );
-    res.json(update);
-  } catch (err) {
-    res.send(err);
-  }
+    )
+    .then(() => {
+      console.log("hid comment");
+      res.json(update);
+    })
+    .catch((err) => res.send(err));
 });
 
 //hiding comment inside an answer
 const hideAC = asyncHandler(async (req, res) => {
-  try {
-    const update = await questionModel.updateOne(
+  const question = await questionModel.findById(req.params.qid);
+  console.log("question:", question);
+
+  if (!question) {
+    return res.status(404).json({ error: "Question not found" });
+  }
+
+  const answerId = req.params.aid;
+  const answerIndex = question.answers.findIndex(
+    (answer) => answer._id == answerId
+  );
+  console.log("Answer index:", answerIndex);
+
+  const commentId = req.params.cid;
+  const commentIndex = question.answers[answerIndex].comments.findIndex(
+    (comment) => comment._id == commentId
+  );
+  console.log("Comment index:", commentIndex);
+
+  await questionModel
+    .updateOne(
       { _id: req.params.qid },
       {
         $set: {
-          "answers.$[j].comments.$[i].hidden": true,
+          "answers.$[j].comments.$[i].hidden":
+            !question.answers[answerIndex].comments[commentIndex].hidden,
         },
       },
       {
@@ -589,11 +628,12 @@ const hideAC = asyncHandler(async (req, res) => {
           },
         ],
       }
-    );
-    res.json(update);
-  } catch (err) {
-    res.send(err);
-  }
+    )
+    .then((data) => {
+      console.log("hid comment");
+      res.json(data);
+    })
+    .catch((err) => res.send(err));
 });
 
 //exporting
