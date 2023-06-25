@@ -34,16 +34,14 @@ const postQuestion = asyncHandler(async (req, res) => {
     upload.array("images", 10)(req, res, async function (err) {
       if (err) {
         console.log(err);
-        return res
-          .status(500)
-          .json(req.body);
+        return res.status(500).json(req.body);
       }
       //get the images from request
       const images = req.files;
-      console.log('images :', images);
+      console.log("images :", images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      if(images){
+      if (images) {
         for (let i = 0; i < images.length; i++) {
           const image = images[i];
           const newImage = new imageModel({
@@ -54,14 +52,14 @@ const postQuestion = asyncHandler(async (req, res) => {
           savedImages.push(image.filename);
         }
       }
-      
+
       //save the images to the question model
 
       body = req.body;
-      console.log('body :', body);
+      console.log("body :", body);
       //finding user
       const um = await userModel.findOne({ user_ID: body.user_ID });
-      console.log('user found', um);
+      console.log("user found", um);
       //creating question
       await questionModel
         .create({
@@ -139,7 +137,7 @@ const allQuestions = asyncHandler(async (req, res) => {
 //gets all my asked questions
 const MyQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID : req.body.user_ID, hidden: false })
+    .find({ user_ID: req.body.user_ID, hidden: false })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments
@@ -170,7 +168,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
         });
         elm.answers = temp;
       });
-
+      console.log("hi");
       res.json(data);
     })
     .catch((err) => {
@@ -181,7 +179,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
 //gets all not my questions
 const OtherQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID : { $ne : req.body.user_ID }, hidden: false })
+    .find({ user_ID: { $ne: req.body.user_ID }, hidden: false })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments
@@ -258,10 +256,10 @@ const answerQ = asyncHandler(async (req, res) => {
       }
       //get the images from request
       const images = req.files;
-      console.log('images', images);
+      console.log("images", images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      if(images){
+      if (images) {
         for (let i = 0; i < images.length; i++) {
           const image = images[i];
           const newImage = new imageModel({
@@ -272,13 +270,13 @@ const answerQ = asyncHandler(async (req, res) => {
           savedImages.push(image.filename);
         }
       }
-      
-      const body = req.body['answers'];
-      console.log('body', body);
+
+      const body = req.body["answers"];
+      console.log("body", body);
       const um = await userModel.findOne({ user_ID: body.user_ID });
-      console.log('user model', um);
+      console.log("user model", um);
       let verified = false;
-      if(um.role === 5980){
+      if (um.role === 5980) {
         verified = true;
       }
       await questionModel
@@ -315,9 +313,9 @@ const answerQ = asyncHandler(async (req, res) => {
 const commentQ = asyncHandler(async (req, res) => {
   try {
     const cID = new mongoose.Types.ObjectId();
-    const body = req.body['comments'];
+    const body = req.body["comments"];
     const um = await userModel.findOne({ user_ID: body.user_ID });
-    console.log('user model', um);
+    console.log("user model", um);
     await questionModel
       .updateOne(
         { _id: req.params.qid },
@@ -355,7 +353,7 @@ const commentQ = asyncHandler(async (req, res) => {
 const commentA = asyncHandler(async (req, res) => {
   try {
     const cID = new mongoose.Types.ObjectId();
-    const body = req.body['answers']['comments'];
+    const body = req.body["answers"]["comments"];
     const um = await userModel
       .findOne()
       .where("user_ID")
@@ -418,27 +416,26 @@ const upvoteQ = asyncHandler(async (req, res) => {
       .length >= 1
   ) {
     console.log("Already upvoted question");
-    console.log('unupvoting');
+    console.log("unupvoting");
     upvote_val = -1;
   }
-    await questionModel
-      .updateOne({ _id: req.params.qid }, { $inc: { upvotes: upvote_val } })
-      .then(async (data) => {
-        let temp;
-        if(upvote_val === -1){
-          temp = um.upvoted_questions.filter((elm) => elm["questionID"] !== req.params.qid);
-          console.log('removing upvote');
-        }
-        else{
-          temp = um.upvoted_questions.concat([
-            { questionID: req.params.qid },
-          ]);
-          console.log('adding upvote');
-        }
-        um.upvoted_questions = temp;
-        await um.save();
-        res.json({ val : upvote_val });
-      });
+  await questionModel
+    .updateOne({ _id: req.params.qid }, { $inc: { upvotes: upvote_val } })
+    .then(async (data) => {
+      let temp;
+      if (upvote_val === -1) {
+        temp = um.upvoted_questions.filter(
+          (elm) => elm["questionID"] !== req.params.qid
+        );
+        console.log("removing upvote");
+      } else {
+        temp = um.upvoted_questions.concat([{ questionID: req.params.qid }]);
+        console.log("adding upvote");
+      }
+      um.upvoted_questions = temp;
+      await um.save();
+      res.json({ val: upvote_val });
+    });
 });
 
 //upvoting answer
@@ -455,38 +452,39 @@ const upvoteA = asyncHandler(async (req, res) => {
       .length >= 1
   ) {
     console.log("Already upvoted answer");
-    console.log('unupvoting');
+    console.log("unupvoting");
     upvote_val = -1;
   }
-    await questionModel
-      .updateOne(
-        { _id: req.params.qid },
-        { $inc: { "answers.$[j].upvotes": upvote_val } }, // $inc is used to increment the value of a field
-        {
-          arrayFilters: [
-            {
-              "j._id": req.params.aid,
-            },
-          ],
-        }
-      )
-      .then(async (data) => {
-        let temp;
-        if(upvote_val === -1){
-          temp = um.upvoted_answers.filter((elm) => elm.answerID !== req.params.aid);
-          console.log('removing upvote');
-        }
-        else{
-          temp = um.upvoted_answers.concat([
-            { questionID: req.params.qid, answerID: req.params.aid },
-          ]);
-          console.log('adding upvote');
-        }
-        um.upvoted_answers = temp;
-        await um.save();
-        res.json({ val : upvote_val });
-      })
-      .catch((err) => res.send(err));
+  await questionModel
+    .updateOne(
+      { _id: req.params.qid },
+      { $inc: { "answers.$[j].upvotes": upvote_val } }, // $inc is used to increment the value of a field
+      {
+        arrayFilters: [
+          {
+            "j._id": req.params.aid,
+          },
+        ],
+      }
+    )
+    .then(async (data) => {
+      let temp;
+      if (upvote_val === -1) {
+        temp = um.upvoted_answers.filter(
+          (elm) => elm.answerID !== req.params.aid
+        );
+        console.log("removing upvote");
+      } else {
+        temp = um.upvoted_answers.concat([
+          { questionID: req.params.qid, answerID: req.params.aid },
+        ]);
+        console.log("adding upvote");
+      }
+      um.upvoted_answers = temp;
+      await um.save();
+      res.json({ val: upvote_val });
+    })
+    .catch((err) => res.send(err));
 });
 
 //hiding stuff
@@ -496,43 +494,45 @@ const hideQ = asyncHandler(async (req, res) => {
   const question = await questionModel.findById(req.params.qid);
 
   if (!question) {
-    return res.status(404).json({ error: 'Question not found' });
+    return res.status(404).json({ error: "Question not found" });
   }
 
   const updatedHidden = !question.hidden;
 
   await questionModel
-    .updateOne({ _id: req.params.qid }, { $set: { hidden : updatedHidden } })
+    .updateOne({ _id: req.params.qid }, { $set: { hidden: updatedHidden } })
     .then((data) => res.json(update))
     .catch((err) => res.send(err));
 });
-
 
 //best to delete them than hide
 //hiding answer
 const hideA = asyncHandler(async (req, res) => {
   const question = await questionModel.findById(req.params.qid);
-  console.log('question:', question);
+  console.log("question:", question);
 
   if (!question) {
-    return res.status(404).json({ error: 'Question not found' });
+    return res.status(404).json({ error: "Question not found" });
   }
 
   const answerId = req.params.aid;
-  const answerIndex = question.answers.findIndex((answer) => answer._id == answerId);
-  console.log('Answer index:', answerIndex);
+  const answerIndex = question.answers.findIndex(
+    (answer) => answer._id == answerId
+  );
+  console.log("Answer index:", answerIndex);
 
   // if (answerIndex === -1) {
   //   return res.status(404).json({ error: 'Answer not found' });
   // }
 
-  console.log('Current hidden value:', question.answers[answerIndex].hidden);
-
+  console.log("Current hidden value:", question.answers[answerIndex].hidden);
 
   await questionModel
     .updateOne(
       { _id: req.params.qid },
-      { $set: { "answers.$[j].hidden": !question.answers[answerIndex].hidden } },
+      {
+        $set: { "answers.$[j].hidden": !question.answers[answerIndex].hidden },
+      },
       {
         arrayFilters: [
           {
@@ -543,12 +543,10 @@ const hideA = asyncHandler(async (req, res) => {
     )
     .then((data) => {
       console.log("hid answer");
-      res.json(update)
+      res.json(update);
     })
     .catch((err) => res.send(err));
 });
-
-
 
 //
 //hiding comment
