@@ -28,6 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false })); //what is urlencoded?: https://stackoverflow.com/questions/29960764/what-does-extended-mean-in-express-4-0s-router-options
 app.use(cookieParser());
 
+app.use(prefix + "/uploads", express.static("./uploads"));
 //All routing goes here
 app.use(prefix + "/user", require("./api/routes/userRouters"));
 
@@ -42,7 +43,9 @@ app.use(
   require("./api/routes/infopostroutes"),
   express.static("uploads")
 );
-app.use(prefix + "/search", require("./api/routes/elasticRouters"));
+
+//for future versions
+//app.use(prefix + "/search", require("./api/routes/elasticRouters"));
 
 //listening to port 5000 by default
 app.listen(port, () =>

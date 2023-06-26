@@ -23,10 +23,17 @@ const {
 // const { uploadImage } = require("../controllers/imageController");
 
 //all the routings
-router.route("/").get(
-  // verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.STUDENT),
-  allQuestions
-);
+router
+  .route("/")
+  .get(
+    verifyRoles(
+      ROLES_LIST.Admin,
+      ROLES_LIST.SMP,
+      ROLES_LIST.STUDENT,
+      ROLES_LIST.ISMP
+    ),
+    allQuestions
+  );
 router
   .route("/post")
   .post(verifyRoles(ROLES_LIST.STUDENT, ROLES_LIST.Admin), postQuestion);

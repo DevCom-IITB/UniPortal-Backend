@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
 const dotenv = require("dotenv");
 dotenv.config();
@@ -7,10 +8,10 @@ const path = require("path");
 // multer middleware for handling uploading images
 const multer = require("multer");
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "../html/uploads");
+  destination: function (_req, _file, cb) {
+    cb(null, path.join(__dirname, "../../uploads"));
   },
-  filename: function (req, file, cb) {
+  filename: function (_req, file, cb) {
     cb(
       null,
       `${file.filename}_${Date.now()}${path.extname(file.originalname)}`
@@ -18,7 +19,24 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  fileFilter: (_req, file, cb) => {
+    //Allowed ext
+    const filetypes = /jpeg|jpg|png|gif/;
+    //check ext
+    const extname = filetypes.test(path.extname(file.originalname).toString());
+    //check mime
+    const mimetype = filetypes.test(file.mimetype);
+    if (extname && mimetype) cb(null, true);
+    else {
+      cb(null, false);
+    }
+  },
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+  },
+});
 
 // import the models
 const questionModel = require("../models/questionModel");
@@ -42,12 +60,12 @@ const postQuestion = asyncHandler(async (req, res) => {
       console.log("images :", images);
       //initiliaze ann array and store the id of the images
       const savedImages = [];
-      if(images){
+      if (images) {
         for (let i = 0; i < images.length; i++) {
           const image = images[i];
           const newImage = new imageModel({
             filename: image.filename,
-            path: image.path,
+            path: path.join(__dirname, "../../uploads"),
           });
           await newImage.save();
           savedImages.push(image.filename);
@@ -93,7 +111,7 @@ const postQuestion = asyncHandler(async (req, res) => {
 //answers
 // get all questions
 // try to implement that one request you send a limited number of questions and then when you scroll down you send another request with the next set of questionss
-const allQuestions = asyncHandler(async (req, res) => {
+const allQuestions = asyncHandler(async (_req, res) => {
   await questionModel
     .find()
     .populate("images")
@@ -138,7 +156,7 @@ const allQuestions = asyncHandler(async (req, res) => {
 //gets all my asked questions
 const MyQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID : req.body.user_ID })
+    .find({ user_ID: req.body.user_ID })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments
@@ -220,7 +238,7 @@ const OtherQuestions = asyncHandler(async (req, res) => {
 });
 
 //gets only answered questions along with answers
-const answeredQuestions = asyncHandler(async (req, res) => {
+const answeredQuestions = asyncHandler(async (_req, res) => {
   await questionModel
     .find({ status: true })
     .sort({ upvotes: -1, asked_At: -1 })
@@ -233,7 +251,7 @@ const answeredQuestions = asyncHandler(async (req, res) => {
 });
 
 //gets all unanswered questions
-const unansweredQuestions = asyncHandler(async (req, res) => {
+const unansweredQuestions = asyncHandler(async (_req, res) => {
   await questionModel
     .find({ status: false })
     .sort({ upvotes: -1, asked_At: -1 })
