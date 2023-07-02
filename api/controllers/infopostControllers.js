@@ -54,7 +54,7 @@ const postinfopost = asyncHandler(async (req, res) => {
       });
     });
   } catch (err) {
-    res.json({ message: "error" });
+    res.json({ message: " An error occured " });
   }
 });
 
@@ -98,7 +98,7 @@ const hideinfopost = asyncHandler(async (req, res) => {
       .updateOne({ _id: req.params.id }, { $set: { hidden: updatedHidden } })
       .then((data) => res.json(data));
   } catch (err) {
-    res.json({ message: "error" });
+    res.status(404).res.json({ message: "error" });
   }
 });
 

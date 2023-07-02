@@ -76,8 +76,16 @@ const postQuestion = asyncHandler(async (req, res) => {
 
       const body = req.body;
       console.log("body :", body);
+      //if no text send error
+      if(!body.body){
+        return res.status(400).json({ message: "Please Enter Text" });
+      }
       //finding user
       const um = await userModel.findOne({ user_ID: body.user_ID });
+      //not working in postman if no userid is sent
+      if(!um){
+        return res.status(404).json({ message: "User Not Found" });
+      }
       console.log("user found", um);
       //creating question
       await questionModel
@@ -104,7 +112,7 @@ const postQuestion = asyncHandler(async (req, res) => {
         });
     });
   } catch (err) {
-    res.json({ message: "error" });
+    res.status(400).json({ message: "Error" });
   }
 });
 
@@ -150,11 +158,12 @@ const allQuestions = asyncHandler(async (_req, res) => {
 
       res.json(data);
     })
-    .catch((err) => res.send(err));
+    .catch((err) =>   res.status(400).json({ message: "Error" }));
 });
 
 //gets all my asked questions
 const MyQuestions = asyncHandler(async (req, res) => {
+  try{
   await questionModel
     .find({ user_ID: req.body.user_ID })
     .sort({ upvotes: -1, asked_At: -1 })
@@ -190,9 +199,10 @@ const MyQuestions = asyncHandler(async (req, res) => {
 
       res.json(data);
     })
-    .catch((err) => {
-      res.send(err);
-    });
+  }
+    catch(err){
+      res.status(400).json({ message: "Error" });
+    }
 });
 
 //gets all not my questions
@@ -233,7 +243,7 @@ const OtherQuestions = asyncHandler(async (req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.send(err);
+      res.status(400).json({ message: "Error" });
     });
 });
 
@@ -246,7 +256,7 @@ const answeredQuestions = asyncHandler(async (_req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.send(err);
+      res.status(400).json({ message: "Error" });
     });
 });
 
@@ -259,7 +269,7 @@ const unansweredQuestions = asyncHandler(async (_req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.send(err);
+      res.status(400).json({ message: "Error" });
     });
 });
 
@@ -321,7 +331,7 @@ const answerQ = asyncHandler(async (req, res) => {
         });
     });
   } catch (err) {
-    res.send(err);
+    res.status(400).json({ message: "Error" });
   }
 });
 
@@ -378,6 +388,13 @@ const commentA = asyncHandler(async (req, res) => {
       .where("user_ID")
       .equals(body.user_ID)
       .exec();
+      if(!um){
+        res.status(404).json({ message: "User not found" });
+      }
+      if(!body.body){
+        res.status(404).json({ message: "Please Enter Text" });
+      }
+
     await questionModel
       .updateOne(
         { _id: req.params.qid },
@@ -416,7 +433,7 @@ const commentA = asyncHandler(async (req, res) => {
         res.json(data);
       });
   } catch (err) {
-    res.send(err);
+    res.status(400).json({ message: "Error" });
   }
 });
 
@@ -503,7 +520,7 @@ const upvoteA = asyncHandler(async (req, res) => {
       await um.save();
       res.json({ val: upvote_val });
     })
-    .catch((err) => res.send(err));
+    .catch((err) => res.status(400).json({ message: "Error" }));
 });
 
 //hiding stuff
@@ -521,7 +538,7 @@ const hideQ = asyncHandler(async (req, res) => {
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden: updatedHidden } })
     .then((data) => res.json(update))
-    .catch((err) => res.send(err));
+    .catch((err) =>res.status(400).json({ message: "Error" }));
 });
 
 //best to delete them than hide
@@ -564,7 +581,7 @@ const hideA = asyncHandler(async (req, res) => {
       console.log("hid answer");
       res.json(update);
     })
-    .catch((err) => res.send(err));
+    .catch((err) => res.status(400).json({ message: "Error" }));
 });
 
 //
@@ -603,7 +620,7 @@ const hideC = asyncHandler(async (req, res) => {
       console.log("hid comment");
       res.json(update);
     })
-    .catch((err) => res.send(err));
+    .catch((err) => res.status(400).json({ message: "Error" }));
 });
 
 //hiding comment inside an answer
@@ -651,7 +668,7 @@ const hideAC = asyncHandler(async (req, res) => {
       console.log("hid comment");
       res.json(data);
     })
-    .catch((err) => res.send(err));
+    .catch((err) => res.status(404).json({ error: "Error" }));
 });
 
 //exporting

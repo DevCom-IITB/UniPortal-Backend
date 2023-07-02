@@ -61,6 +61,10 @@ const loginUser = asyncHandler(async (req, res) => {
   const { user_ID, password } = req.body;
   //find the student from the database
   const foundUser = await userModel.findOne({ user_ID });
+  //if no user found throw error
+  if (!(foundUser && (await bcrypt.compare(password, foundUser.password)))){
+    return res.status(401).json({ message: "Invalid Credentials" });
+  }
   //check with the credentials
   if (foundUser && (await bcrypt.compare(password, foundUser.password))) {
     const role = foundUser.role;
@@ -89,7 +93,8 @@ const loginUser = asyncHandler(async (req, res) => {
       if (!foundToken) {
         foundUser.refreshToken = [];
         await foundUser.save().catch((err) => console.log(err));
-        throw new Error("Detected tampering with cookies");
+        return res.status(404).json({ message: "Detected tampering with cookies" });
+        //throw new Error("Detected tampering with cookies");
       }
       res.clearCookie("jwt", {
         httpOnly: true,
