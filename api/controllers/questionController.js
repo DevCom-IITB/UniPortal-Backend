@@ -87,6 +87,7 @@ const postQuestion = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: "User Not Found" });
       }
       console.log("user found", um);
+      const message = "Question posted successfully";
       //creating question
       await questionModel
         .create({
@@ -108,11 +109,11 @@ const postQuestion = asyncHandler(async (req, res) => {
           um.asked_questions = temp;
           await um.save();
 
-          res.json(data);
+          res.json({data,message});
         });
     });
   } catch (err) {
-    res.status(400).json({ message: "Error" });
+    res.status(400).json({ message: "Error occured while posting the question" });
   }
 });
 
@@ -155,10 +156,9 @@ const allQuestions = asyncHandler(async (_req, res) => {
         });
         elm.answers = temp;
       });
-
       res.json(data);
     })
-    .catch((err) =>   res.status(400).json({ message: "Error" }));
+    .catch((err) =>   res.status(400).json({ message: "Error occured while fetching all questions" }));
 });
 
 //gets all my asked questions
@@ -201,7 +201,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
     })
   }
     catch(err){
-      res.status(400).json({ message: "Error" });
+      res.status(400).json({ message: "Error occured while getting my questions" });
     }
 });
 
@@ -243,7 +243,7 @@ const OtherQuestions = asyncHandler(async (req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.status(400).json({ message: "Error" });
+      res.status(400).json({ message: "Error occured while fetching other questions" });
     });
 });
 
@@ -256,7 +256,7 @@ const answeredQuestions = asyncHandler(async (_req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.status(400).json({ message: "Error" });
+      res.status(400).json({ message: "Error occured while fetching answered Questions" });
     });
 });
 
@@ -269,7 +269,7 @@ const unansweredQuestions = asyncHandler(async (_req, res) => {
       res.json(data);
     })
     .catch((err) => {
-      res.status(400).json({ message: "Error" });
+      res.status(400).json({ message: "Error occured while fetching unanswered Questions" });
     });
 });
 
@@ -303,11 +303,15 @@ const answerQ = asyncHandler(async (req, res) => {
       const body = req.body["answers"];
       console.log("body", body);
       const um = await userModel.findOne({ user_ID: body.user_ID });
+      if(!um){
+        res.status(401).json({error:"User not found"})
+      }
       console.log("user model", um);
       let verified = false;
       if (um.role === 5980) {
         verified = true;
       }
+      const message = "Successfully answered the question";
       await questionModel
         .updateOne(
           { _id: req.params.qid }, // this line is to find the question with the id
@@ -327,11 +331,11 @@ const answerQ = asyncHandler(async (req, res) => {
           }
         )
         .then((data) => {
-          res.json(data);
+          res.json({data,message});
         });
     });
   } catch (err) {
-    res.status(400).json({ message: "Error" });
+    res.status(400).json({ message: "Error occured while answering the question" });
   }
 });
 
@@ -344,7 +348,11 @@ const commentQ = asyncHandler(async (req, res) => {
     const cID = new mongoose.Types.ObjectId();
     const body = req.body["comments"];
     const um = await userModel.findOne({ user_ID: body.user_ID });
+    if(!um){
+      res.status(401).json({error:"User not found"})
+    }
     console.log("user model", um);
+    const message = "Successfully commented on the question";
     await questionModel
       .updateOne(
         { _id: req.params.qid },
@@ -370,11 +378,11 @@ const commentQ = asyncHandler(async (req, res) => {
         ]);
         um.question_comments = temp;
         await um.save();
-        res.json(data);
+        res.json({data,message});
       });
   } catch (err) {
     console.log(err);
-    res.json({ message: "error" });
+    res.status(400).res.json({ message: "Error occured while commenting on the question" });
   }
 });
 
@@ -394,7 +402,7 @@ const commentA = asyncHandler(async (req, res) => {
       if(!body.body){
         res.status(404).json({ message: "Please Enter Text" });
       }
-
+    const message = "Successfully commented on the answer";
     await questionModel
       .updateOne(
         { _id: req.params.qid },
@@ -430,7 +438,7 @@ const commentA = asyncHandler(async (req, res) => {
         ]);
         um.answer_comments = temp;
         await um.save();
-        res.json(data);
+        res.json({data,message});
       });
   } catch (err) {
     res.status(400).json({ message: "Error" });
@@ -445,6 +453,9 @@ const upvoteQ = asyncHandler(async (req, res) => {
     .where("user_ID")
     .equals(req.body.user_ID)
     .exec();
+  if(!um){
+      res.status(404).json({ message: "User not found" });
+  }
   //ensure each user can upvote only once
   let upvote_val = 1;
   if (
@@ -520,7 +531,7 @@ const upvoteA = asyncHandler(async (req, res) => {
       await um.save();
       res.json({ val: upvote_val });
     })
-    .catch((err) => res.status(400).json({ message: "Error" }));
+    .catch((err) => res.status(400).json({ message: "Error occured while upvoting the answer" }));
 });
 
 //hiding stuff
@@ -537,8 +548,8 @@ const hideQ = asyncHandler(async (req, res) => {
 
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden: updatedHidden } })
-    .then((data) => res.json(update))
-    .catch((err) =>res.status(400).json({ message: "Error" }));
+    .then((data) => res.json({message:"The question is hidden now"}))//changed this line from sending update to message
+    .catch((err) =>res.status(400).json({ message: "Error occured while hiding the question" }));
 });
 
 //best to delete them than hide
@@ -579,7 +590,7 @@ const hideA = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid answer");
-      res.json(update);
+      res.json({message:"The answer is hidden now"});//changed this line from sending update to message
     })
     .catch((err) => res.status(400).json({ message: "Error" }));
 });
@@ -618,9 +629,9 @@ const hideC = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid comment");
-      res.json(update);
+      res.json({message: "The comment is hidden now"});//changed this line from sending update to message
     })
-    .catch((err) => res.status(400).json({ message: "Error" }));
+    .catch((err) => res.status(400).json({ message: "Error occured while hiding the comment" }));
 });
 
 //hiding comment inside an answer
@@ -643,7 +654,7 @@ const hideAC = asyncHandler(async (req, res) => {
     (comment) => comment._id == commentId
   );
   console.log("Comment index:", commentIndex);
-
+  const message = "The comment was hidden succesfully";
   await questionModel
     .updateOne(
       { _id: req.params.qid },
@@ -666,9 +677,9 @@ const hideAC = asyncHandler(async (req, res) => {
     )
     .then((data) => {
       console.log("hid comment");
-      res.json(data);
+      res.json({data,message});
     })
-    .catch((err) => res.status(404).json({ error: "Error" }));
+    .catch((err) => res.status(404).json({ error: "Error occured while hiding the comment" }));
 });
 
 //exporting

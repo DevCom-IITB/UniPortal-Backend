@@ -31,6 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
       res.status(400);
       throw new Error("User already exists");
     }
+    const message ="User registered Successfully"
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = new userModel({
@@ -42,7 +43,7 @@ const registerUser = asyncHandler(async (req, res) => {
     await newUser
       .save()
       .then((data) => {
-        res.json(data);
+        res.json({data,message});
       })
       .catch((err) => {
         console.log(err);
@@ -117,10 +118,10 @@ const loginUser = asyncHandler(async (req, res) => {
       accessToken: accessToken,
       role: foundUser.role,
       name: foundUser.name,
+      messaeg:"User logged in successfully"
     }); // and we send the access token as a request
   } else {
-    res.status(400);
-    throw new Error("Invalid Credentials");
+    res.status(401).res.json({message:"Invalid Credentials"});
   }
 });
 
@@ -171,7 +172,7 @@ const SMPLogin = asyncHandler(async (req, res) => {
   const res2 = await axios(config2);
   const rollNumber = res2.data.roll_number;
   console.log("roll number is ", rollNumber);
-  return res.status(200).json({ rollNumber: rollNumber });
+  return res.status(200).json({ rollNumber: rollNumber ,message:" Logged in successfully"});
 });
 
 //for creating new access tokens once the old ones have expired
@@ -281,7 +282,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   //check with the credentials
   if (!foundUser) {
     console.log("user not found");
-    return res.sendStatus(403);
+    return res.sendStatus(403).res.json({message:"User not found"});
   }
   foundUser.refreshToken = foundUser.refreshToken.filter(
     (rt) => rt !== refreshToken
@@ -291,6 +292,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   res.clearCookie("jwt", { httpOnly: true }); ///add secure:true during deployment
   console.log("works");
   res.json({ message: "Cookie removed" });
+  res.json({message:"Logged out successfully"});
 });
 
 module.exports = { registerUser, loginUser, SMPLogin, refreshUser, logoutUser };

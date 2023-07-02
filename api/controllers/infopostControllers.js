@@ -49,12 +49,13 @@ const postinfopost = asyncHandler(async (req, res) => {
         url: req.body.urls,
         images: savedImages,
       });
+      const message = "Infopost posted successfully";
       await infopost.save().then((data) => {
-        res.json(data);
+        res.json({data,message});
       });
     });
   } catch (err) {
-    res.json({ message: " An error occured " });
+    res.status(400).res.json({ message: " An error occured while posting the infopost" });
   }
 });
 
@@ -66,7 +67,7 @@ const getinfopostAd = asyncHandler(async (req, res) => {
       .sort({ asked_At: -1 });
     res.json(infopost);
   } catch (err) {
-    res.json({ message: "error" });
+    res.status(400).res.json({ message: "An error occured while fetching the infoposts" });
   }
 });
 
@@ -79,7 +80,7 @@ const getinfopostStu = asyncHandler(async (req, res) => {
       .sort({ asked_At: -1 });
     res.json(infopost);
   } catch (err) {
-    res.json({ message: "error" });
+    res.status(400).res.json({ message: "Error occured while rendering non-hidden infoposts" });
   }
 });
 
@@ -93,12 +94,12 @@ const hideinfopost = asyncHandler(async (req, res) => {
     }
 
     const updatedHidden = !infopost.hidden;
-
+    const message = "The infopost is hidden now";
     await infopostModel
       .updateOne({ _id: req.params.id }, { $set: { hidden: updatedHidden } })
-      .then((data) => res.json(data));
+      .then((data) => res.json({data,message}));
   } catch (err) {
-    res.status(404).res.json({ message: "error" });
+    res.status(404).res.json({ message: "Error occured while hiding  the infopost" });
   }
 });
 
@@ -114,11 +115,12 @@ const editinfopost = asyncHandler(async (req, res) => {
     const body = req.body.body;
     console.log("req: ", req);
     console.log("body: ", body);
+    const message = "Successfully edited the infopost";
     await infopostModel
       .updateOne({ _id: req.params.id }, { $set: { body: body } })
-      .then((data) => res.json(data));
+      .then((data) => res.json({data,message}));
   } catch (err) {
-    res.json({ message: "error" });
+    res.status(400).res.json({ message: "An error occured while editing the infopost" });
   }
 });
 
