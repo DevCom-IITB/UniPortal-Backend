@@ -229,8 +229,8 @@ const refreshUser = asyncHandler(async (req, res) => {
       if (err || foundUser.user_ID + "" !== decoded.user_ID + "") {
         //if manipulation done
         console.log("Please Login again");
-        return res.sendStatus(403);
-      }
+        return res.sendStatus(403).json({ message: "Please Login again" });
+      } 
 
       //Generating new tokens
       const role = foundUser.role;
@@ -273,7 +273,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const cookies = req.cookies;
   if (!cookies?.jwt) {
     console.log("cookie not found");
-    return res.sendStatus(403);
+    return res.sendStatus(403).json({message:"Cookie not found"});
   }
   const refreshToken = cookies.jwt;
 
@@ -291,8 +291,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   res.clearCookie("jwt", { httpOnly: true }); ///add secure:true during deployment
   console.log("works");
-  res.json({ message: "Cookie removed" });
-  res.json({message:"Logged out successfully"});
+  res.json({ message: "Cookie removed and logged out successfully" });
 });
 
 module.exports = { registerUser, loginUser, SMPLogin, refreshUser, logoutUser };
