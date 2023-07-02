@@ -481,7 +481,8 @@ const upvoteQ = asyncHandler(async (req, res) => {
       }
       um.upvoted_questions = temp;
       await um.save();
-      res.json({ val: upvote_val });
+      const message ="Upvoted successfully";
+      res.json({ val: upvote_val , message});
     });
 });
 
@@ -529,7 +530,8 @@ const upvoteA = asyncHandler(async (req, res) => {
       }
       um.upvoted_answers = temp;
       await um.save();
-      res.json({ val: upvote_val });
+      const message ="Upvoted successfully";
+      res.json({ val: upvote_val,message });
     })
     .catch((err) => res.status(400).json({ message: "Error occured while upvoting the answer" }));
 });
