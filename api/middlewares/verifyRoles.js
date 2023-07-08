@@ -24,7 +24,9 @@ const verifyRoles = (...allowedRoles) => {
           const role = decoded.role;
           console.log("Role is : %s", role);
           const Roles = [...allowedRoles];
-          const result = Roles.includes(role);
+          console.log("Allowed roles : %s", Roles);
+          //check later
+          const result = Roles.includes(role) || Roles[0] == role;
           console.log("Result is : %s", result);
           if (!result) {
             console.log("Not enough permissions");

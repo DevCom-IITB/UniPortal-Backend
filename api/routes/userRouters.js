@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { verifyRoles } = require("../middlewares/verifyRoles");
+const ROLES_LIST = require("../../config/roles_list");
 const {
   registerUser,
   loginUser,
@@ -8,7 +10,7 @@ const {
   SMPLogin,
 } = require("../controllers/userController");
 
-router.route("/register").post(registerUser);
+router.route("/register").post(verifyRoles(ROLES_LIST.Admin), registerUser);
 router.route("/login").post(loginUser);
 router.route("/smplogin").post(SMPLogin);
 router.route("/refresh").put(refreshUser);
