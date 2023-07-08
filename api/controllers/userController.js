@@ -20,16 +20,14 @@ const registerUser = asyncHandler(async (req, res) => {
     const { name, user_ID, password, role } = req.body;
 
     if (!name || !user_ID || !password || !role) {
-      res.status(400);
-      throw new Error("Please fill in all fields");
+      res.status(400).json({ message: "Please fill in all fields" });
     }
 
     // check if the user exists
     const userExists = await userModel.findOne({ user_ID });
 
     if (userExists) {
-      res.status(400);
-      throw new Error("User already exists");
+      res.status(400).json({ message: "User already exists" });
     }
     const message ="User registered Successfully"
     const salt = await bcrypt.genSalt();
@@ -118,7 +116,7 @@ const loginUser = asyncHandler(async (req, res) => {
       accessToken: accessToken,
       role: foundUser.role,
       name: foundUser.name,
-      messaeg:"User logged in successfully"
+      message:"User logged in successfully"
     }); // and we send the access token as a request
   } else {
     res.status(401).res.json({message:"Invalid Credentials"});

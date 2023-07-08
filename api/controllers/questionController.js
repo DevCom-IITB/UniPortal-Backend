@@ -458,6 +458,7 @@ const upvoteQ = asyncHandler(async (req, res) => {
   }
   //ensure each user can upvote only once
   let upvote_val = 1;
+  let pre = 'U';
   if (
     um.upvoted_questions.filter((elm) => elm["questionID"] === req.params.qid)
       .length >= 1
@@ -465,6 +466,7 @@ const upvoteQ = asyncHandler(async (req, res) => {
     console.log("Already upvoted question");
     console.log("unupvoting");
     upvote_val = -1;
+    pre = "Unu";
   }
   await questionModel
     .updateOne({ _id: req.params.qid }, { $inc: { upvotes: upvote_val } })
@@ -481,7 +483,7 @@ const upvoteQ = asyncHandler(async (req, res) => {
       }
       um.upvoted_questions = temp;
       await um.save();
-      const message ="Upvoted successfully";
+      const message =`${pre}pvoted successfully`;
       res.json({ val: upvote_val , message});
     });
 });
@@ -495,6 +497,7 @@ const upvoteA = asyncHandler(async (req, res) => {
     .exec();
   //ensures each user can upvote only once
   let upvote_val = 1;
+  let pre = 'U';
   if (
     um.upvoted_answers.filter((elm) => elm.answerID === req.params.aid)
       .length >= 1
@@ -502,6 +505,7 @@ const upvoteA = asyncHandler(async (req, res) => {
     console.log("Already upvoted answer");
     console.log("unupvoting");
     upvote_val = -1;
+    pre = "Unu";
   }
   await questionModel
     .updateOne(
@@ -530,7 +534,7 @@ const upvoteA = asyncHandler(async (req, res) => {
       }
       um.upvoted_answers = temp;
       await um.save();
-      const message ="Upvoted successfully";
+      const message =`${pre}pvoted successfully`;
       res.json({ val: upvote_val,message });
     })
     .catch((err) => res.status(400).json({ message: "Error occured while upvoting the answer" }));
@@ -547,10 +551,11 @@ const hideQ = asyncHandler(async (req, res) => {
   }
 
   const updatedHidden = !question.hidden;
+  const pre = updatedHidden ? "" : "un";
 
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden: updatedHidden } })
-    .then((data) => res.json({message:"The question is hidden now"}))//changed this line from sending update to message
+    .then((data) => res.json({message:`The question is ${pre}hidden now`}))//changed this line from sending update to message
     .catch((err) =>res.status(400).json({ message: "Error occured while hiding the question" }));
 });
 
@@ -575,6 +580,7 @@ const hideA = asyncHandler(async (req, res) => {
   // }
 
   console.log("Current hidden value:", question.answers[answerIndex].hidden);
+  const pre = question.answers[answerIndex].hidden ? "un" : "";
 
   await questionModel
     .updateOne(
@@ -592,7 +598,7 @@ const hideA = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid answer");
-      res.json({message:"The answer is hidden now"});//changed this line from sending update to message
+      res.json({message:`The answer is ${pre}hidden now`});//changed this line from sending update to message
     })
     .catch((err) => res.status(400).json({ message: "Error" }));
 });
@@ -613,6 +619,8 @@ const hideC = asyncHandler(async (req, res) => {
   );
   console.log("Comment index:", commentIndex);
 
+  const pre = question.comments[commentIndex].hidden ? "un" : "";
+
   await questionModel
     .updateOne(
       { _id: req.params.qid },
@@ -631,7 +639,7 @@ const hideC = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid comment");
-      res.json({message: "The comment is hidden now"});//changed this line from sending update to message
+      res.json({message: `The comment is ${pre}hidden now`});//changed this line from sending update to message
     })
     .catch((err) => res.status(400).json({ message: "Error occured while hiding the comment" }));
 });
@@ -656,7 +664,8 @@ const hideAC = asyncHandler(async (req, res) => {
     (comment) => comment._id == commentId
   );
   console.log("Comment index:", commentIndex);
-  const message = "The comment was hidden succesfully";
+  const pre = question.answers[answerIndex].comments[commentIndex].hidden ? "un" : "";
+  const message = `The comment was ${pre}hidden succesfully`;
   await questionModel
     .updateOne(
       { _id: req.params.qid },
@@ -681,7 +690,7 @@ const hideAC = asyncHandler(async (req, res) => {
       console.log("hid comment");
       res.json({data,message});
     })
-    .catch((err) => res.status(404).json({ error: "Error occured while hiding the comment" }));
+    .catch((err) => res.status(404).json({ message: "Error occured while hiding the comment" }));
 });
 
 //exporting
