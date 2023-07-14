@@ -94,7 +94,8 @@ const hideinfopost = asyncHandler(async (req, res) => {
     }
 
     const updatedHidden = !infopost.hidden;
-    const message = "The infopost is hidden now";
+    const pre = updatedHidden ? "" : "un";
+    const message = `The infopost is ${pre}hidden now`;
     await infopostModel
       .updateOne({ _id: req.params.id }, { $set: { hidden: updatedHidden } })
       .then((data) => res.json({data,message}));
