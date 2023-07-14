@@ -18,6 +18,8 @@ const authenticateToken = process.env.SSO_AUTHENTICATION_TOKEN;
 const registerUser = asyncHandler(async (req, res) => {
   try {
     const { name, user_ID, password, role } = req.body;
+    console.log(name, user_ID, password, role)
+
 
     if (!name || !user_ID || !password || !role) {
       res.status(400).json({ message: "Please fill in all fields" });
@@ -29,7 +31,7 @@ const registerUser = asyncHandler(async (req, res) => {
     if (userExists) {
       res.status(400).json({ message: "User already exists" });
     }
-    const message ="User registered Successfully"
+    const message = "User registered Successfully"
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
     const newUser = new userModel({
@@ -41,13 +43,15 @@ const registerUser = asyncHandler(async (req, res) => {
     await newUser
       .save()
       .then((data) => {
-        res.json({data,message});
+        res.json({ data, message });
       })
       .catch((err) => {
         console.log(err);
       });
   } catch (err) {
+    console.log(err);
     throw new Error("Fields entered are not valid");
+
   }
 });
 //***************************************************************/
@@ -61,7 +65,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //find the student from the database
   const foundUser = await userModel.findOne({ user_ID });
   //if no user found throw error
-  if (!(foundUser && (await bcrypt.compare(password, foundUser.password)))){
+  if (!(foundUser && (await bcrypt.compare(password, foundUser.password)))) {
     return res.status(401).json({ message: "Invalid Credentials" });
   }
   //check with the credentials
@@ -116,10 +120,10 @@ const loginUser = asyncHandler(async (req, res) => {
       accessToken: accessToken,
       role: foundUser.role,
       name: foundUser.name,
-      message:"User logged in successfully"
+      message: "User logged in successfully"
     }); // and we send the access token as a request
   } else {
-    res.status(401).res.json({message:"Invalid Credentials"});
+    res.status(401).res.json({ message: "Invalid Credentials" });
   }
 });
 
@@ -170,7 +174,7 @@ const SMPLogin = asyncHandler(async (req, res) => {
   const res2 = await axios(config2);
   const rollNumber = res2.data.roll_number;
   console.log("roll number is ", rollNumber);
-  return res.status(200).json({ rollNumber: rollNumber ,message:" Logged in successfully"});
+  return res.status(200).json({ rollNumber: rollNumber, message: " Logged in successfully" });
 });
 
 //for creating new access tokens once the old ones have expired
@@ -228,7 +232,7 @@ const refreshUser = asyncHandler(async (req, res) => {
         //if manipulation done
         console.log("Please Login again");
         return res.sendStatus(403).json({ message: "Please Login again" });
-      } 
+      }
 
       //Generating new tokens
       const role = foundUser.role;
@@ -271,7 +275,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   const cookies = req.cookies;
   if (!cookies?.jwt) {
     console.log("cookie not found");
-    return res.sendStatus(403).json({message:"Cookie not found"});
+    return res.sendStatus(403).json({ message: "Cookie not found" });
   }
   const refreshToken = cookies.jwt;
 
@@ -280,7 +284,7 @@ const logoutUser = asyncHandler(async (req, res) => {
   //check with the credentials
   if (!foundUser) {
     console.log("user not found");
-    return res.sendStatus(403).res.json({message:"User not found"});
+    return res.sendStatus(403).res.json({ message: "User not found" });
   }
   foundUser.refreshToken = foundUser.refreshToken.filter(
     (rt) => rt !== refreshToken

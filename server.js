@@ -5,7 +5,7 @@ const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 connectDB();
 const app = express();
-const prefix = process.env.NODE_ENV == "DEV" ? "" : "/newbee/api";
+const prefix = process.env.NODE_ENV == "DEV" ? "" : "/api";
 
 // Enable CORS
 app.use((req, res, next) => {
