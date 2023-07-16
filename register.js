@@ -2,6 +2,7 @@ const prompt = require("prompt-sync")();
 const csv = require("csv-parser");
 const fs = require("fs");
 const results = [];
+const fetch = require("node-fetch");
 
 //entering register url
 console.log("Enter register url");
@@ -23,7 +24,7 @@ fs.createReadStream('./export.csv').pipe(csv({}))
             console.log(request)
             const bearer = accessToken;
 
-            await fetch(registerURL,
+            const res =  await fetch(registerURL,
                 {
                     method: 'POST',
                     headers: {
@@ -32,9 +33,12 @@ fs.createReadStream('./export.csv').pipe(csv({}))
                     },
                     body: JSON.stringify(request)
                 }
-            ).then((res) => {
-                console.log(res)
-            })
+            )
+
+            const data = await res.json();
+
+            console.log(data);
+
         })
     });
 
