@@ -2,7 +2,7 @@ const prompt = require("prompt-sync")();
 const csv = require("csv-parser");
 const fs = require("fs");
 const results = [];
-const fetch = require("node-fetch");
+const fetch = require("node-fetch"); //in case you are using a newer version of node 20.0 and above comment out this line
 
 //entering register url
 console.log("Enter register url");
@@ -12,9 +12,9 @@ const accessToken = prompt();
 
 fs.createReadStream('./export.csv').pipe(csv({}))
     .on('data', (data) => results.push(data))
-    .on('end', async () => {
+    .on('end', () => {
 
-        results.forEach(async (elm) => {
+        results.forEach((elm) => {
             const request = {
                 "name": elm.name,
                 "user_ID": elm.user_ID,
@@ -24,7 +24,7 @@ fs.createReadStream('./export.csv').pipe(csv({}))
             console.log(request)
             const bearer = accessToken;
 
-            const res =  await fetch(registerURL,
+            fetch(registerURL,
                 {
                     method: 'POST',
                     headers: {
@@ -33,11 +33,9 @@ fs.createReadStream('./export.csv').pipe(csv({}))
                     },
                     body: JSON.stringify(request)
                 }
-            )
-
-            const data = await res.json();
-
-            console.log(data);
+            ).then((data) => {
+                console.log(data.json())
+            })
 
         })
     });
