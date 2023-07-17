@@ -29,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const userExists = await userModel.findOne({ user_ID });
 
     if (userExists) {
-      res.status(400).json({ message: "User already exists" });
+      return res.status(400).json({ message: "User already exists" });
     }
     const message = "User registered Successfully"
     const salt = await bcrypt.genSalt();
