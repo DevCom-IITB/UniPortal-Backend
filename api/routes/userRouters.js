@@ -10,7 +10,7 @@ const {
   SMPLogin,
 } = require("../controllers/userController");
 
-router.route("/register").post(verifyRoles(ROLES_LIST.Admin), registerUser);
+router.route("/register").post( registerUser);
 router.route("/login").post(loginUser);
 router.route("/smplogin").post(SMPLogin);
 router.route("/refresh").put(refreshUser);
