@@ -9,6 +9,7 @@ const infopostSchema = mongoose.Schema({
   hidden: { type: Boolean, default: false },
   images: [{ type: String }],
   asked_At: { type: Date, default: Date.now },
+  tag: { type: String, required: false }
 });
 
 const infopostModel = mongoose.model("infopostModel", infopostSchema);

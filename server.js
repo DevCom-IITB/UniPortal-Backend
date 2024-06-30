@@ -31,6 +31,9 @@ app.use(cookieParser());
 app.use(prefix + "/uploads", express.static("./uploads"));
 //All routing goes here
 app.use(prefix + "/user", require("./api/routes/userRouters"));
+app.use(prefix+ "/notification", require("./api/routes/notificationRouters"));
+app.use(prefix+ "/taggedQ", require("./api/routes/tagRouters"));
+
 
 // app.use(authenticateToken);
 app.use(
@@ -46,6 +49,9 @@ app.use(
 
 //for future versions
 //app.use(prefix + "/search", require("./api/routes/elasticRouters"));
+
+//WebSocket Server
+require('./webSocket/websocketServer')
 
 //listening to port 5000 by default
 app.listen(port, () =>
