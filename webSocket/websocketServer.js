@@ -9,8 +9,8 @@ const wss=new WebSocket.Server({server});
 
 wss.on('connection',handleWebSocketConnection)
 
-server.listen(3000, () => {
-    console.log('WebSocket Server is running on http://localhost:3000');
+server.listen(3001, () => {
+    console.log('WebSocket Server is running on http://localhost:3001');
   });
   
 module.exports = server;
