@@ -94,8 +94,8 @@ const postQuestion = asyncHandler(async (req, res) => {
       const message = "Question posted successfully";
       //defining tag for the question
       const query = body.body;
-      // const tag_response = await axios.post('http://localhost:5001/tag', { query });
-      // const classified_tag = tag_response.data;
+      const tag_response = await axios.post('/newbee/nlp/tag', { query });
+      const classified_tag = tag_response.data;
       //creating question
       await questionModel
         .create({
@@ -104,7 +104,7 @@ const postQuestion = asyncHandler(async (req, res) => {
           body: body.body,
           images: savedImages,
           _id: qID,
-          // tag: classified_tag,
+          tag: classified_tag,
           //reason I didn't initialise comment or answer is because it used to create a default answer and comment
           is_Anonymous: is_Anonymous,
         })
@@ -120,7 +120,7 @@ const postQuestion = asyncHandler(async (req, res) => {
           await um.save();
 
           //creating tfidf embeddings
-          axios.get('http://localhost:5001/embed').then(
+          axios.get('/newbee/nlp/embed').then(
             console.log('created embeddings')
           )
 

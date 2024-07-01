@@ -51,13 +51,13 @@ const postinfopost = asyncHandler(async (req, res) => {
       }
       //defining tag for the question
       const query = req.body.body;
-      // const tag_response = await axios.post('http://localhost:5001/tag', { query });
-      // const classified_tag = tag_response.data;
+      const tag_response = await axios.post('/newbee/nlp/tag', { query });
+      const classified_tag = tag_response.data;
       const infopost = new infopostModel({
         body: req.body.body,
         url: req.body.urls,
         images: savedImages,
-        // tag: classified_tag
+        tag: classified_tag
       });
       const savedInfopost = await infopost.save();
       // Notify all students about the new infopost
