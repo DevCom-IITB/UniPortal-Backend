@@ -6,7 +6,7 @@ const handleWebSocketConnection = (ws) => {
     ws.on('message', async (message) => {
         console.log(`Recieved message from client : ${message}`);
         try {
-            const response = await axios.post('/newbee/nlp/recommend', { message });
+            const response = await axios.post('http://127.0.0.1:5001/newbee/nlp/recommend', { message });
             ws.send(JSON.stringify(response.data));
         } catch (error) {
             console.error('Error fetching recommendations:', error);

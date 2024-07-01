@@ -94,7 +94,7 @@ const postQuestion = asyncHandler(async (req, res) => {
       const message = "Question posted successfully";
       //defining tag for the question
       const query = body.body;
-      const tag_response = await axios.post('/newbee/nlp/tag', { query });
+      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
       const classified_tag = tag_response.data;
       //creating question
       await questionModel
@@ -120,7 +120,7 @@ const postQuestion = asyncHandler(async (req, res) => {
           await um.save();
 
           //creating tfidf embeddings
-          axios.get('/newbee/nlp/embed').then(
+          axios.get('http://127.0.0.1:5001/newbee/nlp/embed').then(
             console.log('created embeddings')
           )
 
