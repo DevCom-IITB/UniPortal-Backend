@@ -224,7 +224,7 @@ const MyQuestions = asyncHandler(async (req, res) => {
 //gets all not my questions
 const OtherQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID: { $ne: req.body.user_ID }, hidden: false })
+    .find({ hidden: false })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments

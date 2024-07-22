@@ -42,7 +42,7 @@ router
   .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), MyQuestions);
 router
   .route("/otherQ")
-  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), OtherQuestions);
+  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT, ROLES_LIST.ISMP, ROLES_LIST.SMP), OtherQuestions);
 router
   .route("/answeredQ")
   .get(
