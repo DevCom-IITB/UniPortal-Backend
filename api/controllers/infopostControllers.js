@@ -51,7 +51,7 @@ const postinfopost = asyncHandler(async (req, res) => {
       }
       //defining tag for the question
       const query = req.body.body;
-      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
+      const tag_response = await axios.post('http://127.0.0.1:5001/tag', { query });
       const classified_tag = tag_response.data;
       const infopost = new infopostModel({
         body: req.body.body,
