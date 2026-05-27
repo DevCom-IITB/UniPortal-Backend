@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose"); //This imports the Mongoose library, which is the Object Data Modeling (ODM) tool used to interact with MongoDB.
 
 //schema for students
 const userSchema = mongoose.Schema({
@@ -14,9 +14,12 @@ const userSchema = mongoose.Schema({
   answer_comments: [],
   answered_questions: [],
   role: { type: Number, required: true },
+  //A numeric value that determines the user's permissions (e.g., 0 for Student, 1 for Mentor/SMPC).
   refreshToken: [String],
+  //An array to store JSON Web Tokens used for maintaining user sessions.
 });
 
 const userModel = mongoose.model("userModel", userSchema);
 
 module.exports = userModel;
+//module.exports: Makes this model available to be imported into your controllers (like authController.js) to handle logic.
