@@ -328,7 +328,7 @@ const answerQ = asyncHandler(async (req, res) => {
       }
       console.log("user model", um);
       let verified = false;
-      if (um.role === 5980) {
+      if (um.role === 5980 || um.role === 6311) {
         verified = true;
       }
       const message = "Successfully answered the question";
