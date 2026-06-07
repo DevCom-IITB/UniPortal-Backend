@@ -19,6 +19,9 @@ const {
   hideA,
   hideAC,
   hideC,
+  editA,
+  editQ,
+  editC,
 } = require("../controllers/questionController");
 // const { uploadImage } = require("../controllers/imageController");
 
@@ -42,7 +45,7 @@ router
   .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), MyQuestions);
 router
   .route("/otherQ")
-  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT), OtherQuestions);
+  .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.STUDENT, ROLES_LIST.ISMP, ROLES_LIST.SMP), OtherQuestions);
 router
   .route("/answeredQ")
   .get(
@@ -101,5 +104,17 @@ router
 router
   .route("/hideAC/:qid/:aid/:cid")
   .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP), hideAC);
+
+router
+  .route("/editQ/:qid")
+  .patch(verifyRoles(ROLES_LIST.STUDENT), editQ);
+
+router
+  .route("/editA/:qid/:aid")
+  .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP), editA);
+
+router
+  .route("/editC/:qid/:aid/:cid")
+  .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP), editC);
 
 module.exports = router;
