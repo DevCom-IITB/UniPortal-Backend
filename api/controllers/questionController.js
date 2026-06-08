@@ -96,6 +96,7 @@ const postQuestion = asyncHandler(async (req, res) => {
           body: body.body,
           images: savedImages,
           _id: qID,
+          tag: body.tag || "",
           //reason I didn't initialise comment or answer is because it used to create a default answer and comment
         })
         .then(async (data) => {
@@ -693,6 +694,19 @@ const hideAC = asyncHandler(async (req, res) => {
     .catch((err) => res.status(404).json({ message: "Error occured while hiding the comment" }));
 });
 
+//get a single question by ID
+const getQuestionById = asyncHandler(async (req, res) => {
+  try {
+    const question = await questionModel.findById(req.params.id);
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+    res.json(question);
+  } catch (err) {
+    res.status(400).json({ message: "Error occured while fetching the question" });
+  }
+});
+
 //exporting
 module.exports = {
   postQuestion,
@@ -710,4 +724,5 @@ module.exports = {
   hideA,
   hideC,
   hideAC,
+  getQuestionById,
 };

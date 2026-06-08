@@ -59,16 +59,26 @@ const searchQuestions = asyncHandler(async (req, res) => {
 
   const hits = fuse.search(query, { limit });
 
-  const results = hits.map((hit) => ({
-    _id: hit.item._id,
-    body: hit.item.body,
-    user_Name: hit.item.type === "infopost" ? "SMPC" : hit.item.user_Name,
-    asked_At: hit.item.asked_At,
-    upvotes: hit.item.upvotes || 0,
-    answered: hit.item.type === "infopost" ? false : (hit.item.answers || []).length > 0,
-    score: hit.score,
-    type: hit.item.type,
-  }));
+  const results = hits
+    .map((hit) => ({
+      _id: hit.item._id,
+      body: hit.item.body,
+      user_Name: hit.item.type === "infopost" ? "SMPC" : hit.item.user_Name,
+      asked_At: hit.item.asked_At,
+      upvotes: hit.item.upvotes || 0,
+      answered:
+        hit.item.type === "infopost"
+          ? false
+          : (hit.item.answers || []).filter((a) => !a.hidden).length > 0,
+      score: hit.score,
+      type: hit.item.type,
+    }))
+    // Bubble answered questions to the top within same score tier
+    .sort((a, b) => {
+      const scoreDiff = (a.score || 0) - (b.score || 0);
+      if (Math.abs(scoreDiff) > 0.05) return scoreDiff;
+      return (b.answered ? 1 : 0) - (a.answered ? 1 : 0);
+    });
 
   res.json({ results });
 });

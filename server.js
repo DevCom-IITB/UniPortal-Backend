@@ -53,6 +53,7 @@ app.use(
 );
 
 app.use(prefix + "/search", require("./api/routes/searchRouters"));
+app.use(prefix + "/translate", require("./api/routes/translateRouters"));
 
 // global error handler that returns JSON for any unhandled errors
 app.use((err, req, res, next) => {

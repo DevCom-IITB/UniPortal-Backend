@@ -19,6 +19,7 @@ const {
   hideA,
   hideAC,
   hideC,
+  getQuestionById,
 } = require("../controllers/questionController");
 // const { uploadImage } = require("../controllers/imageController");
 
@@ -101,5 +102,16 @@ router
 router
   .route("/hideAC/:qid/:aid/:cid")
   .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP), hideAC);
+router
+  .route("/:id")
+  .get(
+    verifyRoles(
+      ROLES_LIST.Admin,
+      ROLES_LIST.SMP,
+      ROLES_LIST.STUDENT,
+      ROLES_LIST.ISMP
+    ),
+    getQuestionById
+  );
 
 module.exports = router;
