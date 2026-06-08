@@ -2,13 +2,18 @@ const asyncHandler = require("express-async-handler");//Handles async operations
 //Without async operations, if one student uploaded 10 large images, every other student at IITB would experience a "frozen" website until those images were finished processing.
 
 const dotenv = require("dotenv");
-const axios = require('axios');
-dotenv.config();
+//To use the variables stored in the .env file
+//This imports the dotenv library, which is a popular Node.js module used to load environment variables.
+//It keeps your secrets safe. You can share your code on GitHub without sharing your database passwords, as long as you don't upload the .env file itself.
+
+
+dotenv.config();//Loads variables from .env
 const infopostModel = require("../models/infopostModel");
 const imageModel = require("../models/imageModel");
 const userModel = require("../models/userModel");
 const { createNotification } = require("../controllers/notificationController");
 const path = require("path");
+//When you deal with file uploads (like student questions or SMPC infoposts), you encounter different operating systems (Windows uses \, while Linux/macOS uses /). The path module ensures your code works perfectly on any server.
 
 // multer middleware for handling uploading images
 const multer = require("multer");
@@ -78,7 +83,9 @@ const postinfopost = asyncHandler(async (req, res) => {
 
 
       const message = "Infopost posted successfully";
-      res.json({ data: savedInfopost, message });
+      await infopost.save().then((data) => {
+        res.json({ data, message });
+      });
     });
   } catch (err) {
     res.status(400).json({ message: "An error occurred while posting the infopost" });

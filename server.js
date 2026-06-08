@@ -58,9 +58,6 @@ app.use(
 //for future versions
 //app.use(prefix + "/search", require("./api/routes/elasticRouters"));
 
-//WebSocket Server
-require('./webSocket/websocketServer')
-
 // global error handler that returns JSON for any unhandled errors
 app.use((err, req, res, next) => {
   console.error(err.stack || err);

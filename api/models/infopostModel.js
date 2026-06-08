@@ -14,7 +14,7 @@ const infopostSchema = mongoose.Schema({
   //An Array of Strings that stores the paths or filenames of images associated with the post.
 
   asked_At: { type: Date, default: Date.now },
-  tag: { type: String, required: false }
+  //Stores the exact date and time when the post was created. It defaults to the current server time if not specified
 });
 
 const infopostModel = mongoose.model("infopostModel", infopostSchema);
