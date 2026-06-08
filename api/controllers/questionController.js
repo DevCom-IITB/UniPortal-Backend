@@ -94,8 +94,16 @@ const postQuestion = asyncHandler(async (req, res) => {
       const message = "Question posted successfully";
       //defining tag for the question
       const query = body.body;
-      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
-      const classified_tag = tag_response.data;
+      let classified_tag = "General"; // Default tag
+
+      try {
+        const nlpBaseUrl = process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001";
+        const tag_response = await axios.post(`${nlpBaseUrl}/tag`, { query });
+        classified_tag = tag_response.data;
+      } catch (nlpError) {
+        console.error("NLP Tagging Service Error:", nlpError.message);
+      }
+
       //creating question
       await questionModel
         .create({
@@ -120,9 +128,14 @@ const postQuestion = asyncHandler(async (req, res) => {
           await um.save();
 
           //creating tfidf embeddings
-          axios.get('http://127.0.0.1:5001/newbee/nlp/embed').then(
-            console.log('created embeddings')
-          )
+          try {
+            const nlpBaseUrl = process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001";
+            axios.get(`${nlpBaseUrl}/embed`).then(
+              console.log('created embeddings')
+            ).catch(err => console.error("NLP Embedding Error:", err.message));
+          } catch (embedError) {
+            console.error("NLP Embedding trigger error:", embedError.message);
+          }
 
           res.json({ data, message });
         });

@@ -96,7 +96,7 @@ const startServer = async () => {
   await ensureDefaultSMPUser();
   app.listen(port, () =>
     console.log(
-      `Server running on port ${port}, On ${prefix}, In env ${process.env.NODE_ENV}`
+      `Server running on port ${port}, On ${prefix}, In env ${process.env.NODE_ENV}. NLP Service URL: ${process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001"}`
     )
   );
 };
