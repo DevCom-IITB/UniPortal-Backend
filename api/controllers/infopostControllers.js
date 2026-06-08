@@ -62,7 +62,7 @@ const postinfopost = asyncHandler(async (req, res) => {
 const getinfopostAd = asyncHandler(async (req, res) => {
   try {
     const infopost = await infopostModel
-      .find()
+      .find({ hidden: false })
       .populate("images")
       .sort({ asked_At: -1 });
     res.json(infopost);
@@ -93,11 +93,9 @@ const hideinfopost = asyncHandler(async (req, res) => {
       return res.status(404).json({ message: "infopost not found" });
     }
 
-    const updatedHidden = !infopost.hidden;
-    const pre = updatedHidden ? "" : "un";
-    const message = `The infopost is ${pre}hidden now`;
+    const message = "The infopost is hidden now";
     await infopostModel
-      .updateOne({ _id: req.params.id }, { $set: { hidden: updatedHidden } })
+      .updateOne({ _id: req.params.id }, { $set: { hidden: true } })
       .then((data) => res.json({data,message}));
   } catch (err) {
     res.status(404).res.json({ message: "Error occured while hiding  the infopost" });
