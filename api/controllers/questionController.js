@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable no-undef */
+const axios = require('axios');
 const dotenv = require("dotenv");
 dotenv.config();
 const asyncHandler = require("express-async-handler"); // the function of async handler here is to handle errors in async functions. https://www.npmjs.com/package/express-async-handler
@@ -42,6 +43,8 @@ const upload = multer({
 const questionModel = require("../models/questionModel");
 const userModel = require("../models/userModel");
 const imageModel = require("../models/imageModel");
+//import the controllers
+const { createNotification } = require("../controllers/notificationController");
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -75,19 +78,24 @@ const postQuestion = asyncHandler(async (req, res) => {
       //save the images to the question model
 
       const body = req.body;
+      const is_Anonymous = body.is_Anonymous
       console.log("body :", body);
       //if no text send error
-      if(!body.body){
+      if (!body.body) {
         return res.status(400).json({ message: "Please Enter Text" });
       }
       //finding user
       const um = await userModel.findOne({ user_ID: body.user_ID });
       //not working in postman if no userid is sent
-      if(!um){
+      if (!um) {
         return res.status(404).json({ message: "User Not Found" });
       }
       console.log("user found", um);
       const message = "Question posted successfully";
+      //defining tag for the question
+      const query = body.body;
+      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
+      const classified_tag = tag_response.data;
       //creating question
       await questionModel
         .create({
@@ -96,8 +104,9 @@ const postQuestion = asyncHandler(async (req, res) => {
           body: body.body,
           images: savedImages,
           _id: qID,
-          tag: body.tag || "",
+          tag: classified_tag,
           //reason I didn't initialise comment or answer is because it used to create a default answer and comment
+          is_Anonymous: is_Anonymous,
         })
         .then(async (data) => {
           //automatic indexing of  question whenever it is posted
@@ -110,8 +119,14 @@ const postQuestion = asyncHandler(async (req, res) => {
           um.asked_questions = temp;
           await um.save();
 
-          res.json({data,message});
+          //creating tfidf embeddings
+          axios.get('http://127.0.0.1:5001/newbee/nlp/embed').then(
+            console.log('created embeddings')
+          )
+
+          res.json({ data, message });
         });
+
     });
   } catch (err) {
     res.status(400).json({ message: "Error occured while posting the question" });
@@ -159,57 +174,57 @@ const allQuestions = asyncHandler(async (_req, res) => {
       });
       res.json(data);
     })
-    .catch((err) =>   res.status(400).json({ message: "Error occured while fetching all questions" }));
+    .catch((err) => res.status(400).json({ message: "Error occured while fetching all questions" }));
 });
 
 //gets all my asked questions
 const MyQuestions = asyncHandler(async (req, res) => {
-  try{
-  await questionModel
-    .find({ user_ID: req.body.user_ID })
-    .sort({ upvotes: -1, asked_At: -1 })
-    .then((data) => {
-      //not sending hidden comments
-      let temp = [];
-      data.forEach((elm) => {
-        temp = [];
-        elm.comments.forEach((em) => {
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
-        });
-        elm.comments = temp;
-      });
-      //not sending hidden answers and hidden comments within answers
-      data.forEach((elm) => {
-        temp = [];
-        elm.answers.forEach((em) => {
-          let temp1 = [];
-          em.comments.forEach((emm) => {
-            if (emm.hidden == false) temp1.push(emm);
+  try {
+    await questionModel
+      .find({ user_ID: req.body.user_ID })
+      .sort({ upvotes: -1, asked_At: -1 })
+      .then((data) => {
+        //not sending hidden comments
+        let temp = [];
+        data.forEach((elm) => {
+          temp = [];
+          elm.comments.forEach((em) => {
+            if (em.hidden === false) {
+              console.log(em);
+              temp.push(em);
+            }
           });
-          em.comments = temp1;
-          if (em.hidden === false) {
-            console.log(em);
-            temp.push(em);
-          }
+          elm.comments = temp;
         });
-        elm.answers = temp;
-      });
+        //not sending hidden answers and hidden comments within answers
+        data.forEach((elm) => {
+          temp = [];
+          elm.answers.forEach((em) => {
+            let temp1 = [];
+            em.comments.forEach((emm) => {
+              if (emm.hidden == false) temp1.push(emm);
+            });
+            em.comments = temp1;
+            if (em.hidden === false) {
+              console.log(em);
+              temp.push(em);
+            }
+          });
+          elm.answers = temp;
+        });
 
-      res.json(data);
-    })
+        res.json(data);
+      })
   }
-    catch(err){
-      res.status(400).json({ message: "Error occured while getting my questions" });
-    }
+  catch (err) {
+    res.status(400).json({ message: "Error occured while getting my questions" });
+  }
 });
 
 //gets all not my questions
 const OtherQuestions = asyncHandler(async (req, res) => {
   await questionModel
-    .find({ user_ID: { $ne: req.body.user_ID }, hidden: false })
+    .find({ hidden: false })
     .sort({ upvotes: -1, asked_At: -1 })
     .then((data) => {
       //not sending hidden comments
@@ -303,43 +318,61 @@ const answerQ = asyncHandler(async (req, res) => {
 
       const body = req.body["answers"];
       console.log("body", body);
+
       const um = await userModel.findOne({ user_ID: body.user_ID });
-      if(!um){
-        res.status(401).json({error:"User not found"})
+
+      // const um = await userModel.findOne({ user_ID: req.body.user_ID });
+      if (!um) {
+        return res.status(401).json({ error: "User not found" });
+
       }
       console.log("user model", um);
       let verified = false;
-      if (um.role === 5980) {
+      if (um.role === 5980 || um.role === 6311) {
         verified = true;
       }
       const message = "Successfully answered the question";
+      // Update the question with the provided answer
       await questionModel
-        .updateOne(
-          { _id: req.params.qid }, // this line is to find the question with the id
+        .findByIdAndUpdate(
+          req.params.qid,
           {
             $push: {
-              answers: [
-                {
-                  body: body.body,
-                  user_ID: body.user_ID,
-                  user_Name: um.name,
-                  images: savedImages,
-                  verified: verified,
-                },
-              ],
+              answers: {
+                body: body.body,
+                user_ID: body.user_ID,
+                user_Name: um.name,
+                images: savedImages,
+                verified: verified,
+              },
             },
             $set: { status: true },
-          }
+          },
+          { new: true } // To return the updated document
         )
-        .then((data) => {
-          res.json({data,message});
+        .then(async (updatedQuestion) => {
+          // To check if the question was found and updated
+          if (!updatedQuestion) {
+            return res.status(404).json({ error: "Question not found" });
+          }
+          // Notify the student that their question has been answered
+          const studentId = updatedQuestion.user_ID;
+          const answererId = body.user_ID;
+          const notifMessage = "Your question has been answered";
+          createNotification(
+            answererId,
+            [studentId],
+            req.params.qid,
+            notifMessage,
+            true
+          );
+          res.json({ data: updatedQuestion, message });
         });
     });
   } catch (err) {
-    res.status(400).json({ message: "Error occured while answering the question" });
+    res.status(400).json({ message: "Error occurred while answering the question" });
   }
 });
-
 //Commenting
 //Commenting on a question
 //no point of keeping track of comments
@@ -348,42 +381,52 @@ const commentQ = asyncHandler(async (req, res) => {
   try {
     const cID = new mongoose.Types.ObjectId();
     const body = req.body["comments"];
+
     const um = await userModel.findOne({ user_ID: body.user_ID });
-    if(!um){
-      res.status(401).json({error:"User not found"})
+
+    // const um = await userModel.findOne({ user_ID: req.body.user_ID });
+
+    if (!um) {
+      return res.status(401).json({ error: "User not found" });
+
     }
     console.log("user model", um);
     const message = "Successfully commented on the question";
-    await questionModel
-      .updateOne(
-        { _id: req.params.qid },
-        {
-          $push: {
-            comments: [
-              {
-                _id: cID,
-                body: body.body,
-                user_ID: body.user_ID,
-                user_Name: um.name,
-              },
-            ],
+    // Update the question document by pushing the new comment
+    await questionModel.findByIdAndUpdate(
+      req.params.qid,
+      {
+        $push: {
+          comments: {
+            _id: cID,
+            body: body.body,
+            user_ID: body.user_ID,
+            user_Name: um ? um.name : 'Unknown', // Handle case where user is not found
           },
-        }
-      )
-      .then(async (data) => {
-        console.log(cID.valueOf());
-        //inserting posted comment id to user model
-
-        const temp = um.question_comments.concat([
-          { questionID: req.params.qid, commentID: cID.valueOf() },
-        ]);
-        um.question_comments = temp;
-        await um.save();
-        res.json({data,message});
-      });
+        },
+      },
+    );
+    //Notify the student that someone commented on their question
+    const studentid = (await questionModel.findById(req.params.qid)).user_ID;
+    const senderid = um.user_ID;
+    const notifMessage = "Your question has been commented on";
+    createNotification(
+      senderid,
+      [studentid],
+      req.params.qid,
+      notifMessage,
+      true
+    );
+    // Insert the posted comment ID to user model
+    const temp = um.question_comments.concat([
+      { questionID: req.params.qid, commentID: cID.valueOf() },
+    ]);
+    um.question_comments = temp;
+    await um.save();
+    res.json({ message });
   } catch (err) {
     console.log(err);
-    res.status(400).res.json({ message: "Error occured while commenting on the question" });
+    res.status(400).json({ message: "Error occurred while commenting on the question" });
   }
 });
 
@@ -397,12 +440,12 @@ const commentA = asyncHandler(async (req, res) => {
       .where("user_ID")
       .equals(body.user_ID)
       .exec();
-      if(!um){
-        res.status(404).json({ message: "User not found" });
-      }
-      if(!body.body){
-        res.status(404).json({ message: "Please Enter Text" });
-      }
+    if (!um) {
+      res.status(404).json({ message: "User not found" });
+    }
+    if (!body.body) {
+      res.status(404).json({ message: "Please Enter Text" });
+    }
     const message = "Successfully commented on the answer";
     await questionModel
       .updateOne(
@@ -439,7 +482,7 @@ const commentA = asyncHandler(async (req, res) => {
         ]);
         um.answer_comments = temp;
         await um.save();
-        res.json({data,message});
+        res.json({ data, message });
       });
   } catch (err) {
     res.status(400).json({ message: "Error" });
@@ -454,8 +497,8 @@ const upvoteQ = asyncHandler(async (req, res) => {
     .where("user_ID")
     .equals(req.body.user_ID)
     .exec();
-  if(!um){
-      res.status(404).json({ message: "User not found" });
+  if (!um) {
+    res.status(404).json({ message: "User not found" });
   }
   //ensure each user can upvote only once
   let upvote_val = 1;
@@ -484,8 +527,8 @@ const upvoteQ = asyncHandler(async (req, res) => {
       }
       um.upvoted_questions = temp;
       await um.save();
-      const message =`${pre}pvoted successfully`;
-      res.json({ val: upvote_val , message});
+      const message = `${pre}pvoted successfully`;
+      res.json({ val: upvote_val, message });
     });
 });
 
@@ -535,8 +578,8 @@ const upvoteA = asyncHandler(async (req, res) => {
       }
       um.upvoted_answers = temp;
       await um.save();
-      const message =`${pre}pvoted successfully`;
-      res.json({ val: upvote_val,message });
+      const message = `${pre}pvoted successfully`;
+      res.json({ val: upvote_val, message });
     })
     .catch((err) => res.status(400).json({ message: "Error occured while upvoting the answer" }));
 });
@@ -556,8 +599,8 @@ const hideQ = asyncHandler(async (req, res) => {
 
   await questionModel
     .updateOne({ _id: req.params.qid }, { $set: { hidden: updatedHidden } })
-    .then((data) => res.json({message:`The question is ${pre}hidden now`}))//changed this line from sending update to message
-    .catch((err) =>res.status(400).json({ message: "Error occured while hiding the question" }));
+    .then((data) => res.json({ message: `The question is ${pre}hidden now` }))//changed this line from sending update to message
+    .catch((err) => res.status(400).json({ message: "Error occured while hiding the question" }));
 });
 
 //best to delete them than hide
@@ -599,7 +642,7 @@ const hideA = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid answer");
-      res.json({message:`The answer is ${pre}hidden now`});//changed this line from sending update to message
+      res.json({ message: `The answer is ${pre}hidden now` });//changed this line from sending update to message
     })
     .catch((err) => res.status(400).json({ message: "Error" }));
 });
@@ -640,7 +683,7 @@ const hideC = asyncHandler(async (req, res) => {
     )
     .then(() => {
       console.log("hid comment");
-      res.json({message: `The comment is ${pre}hidden now`});//changed this line from sending update to message
+      res.json({ message: `The comment is ${pre}hidden now` });//changed this line from sending update to message
     })
     .catch((err) => res.status(400).json({ message: "Error occured while hiding the comment" }));
 });
@@ -649,6 +692,7 @@ const hideC = asyncHandler(async (req, res) => {
 const hideAC = asyncHandler(async (req, res) => {
   const question = await questionModel.findById(req.params.qid);
   console.log("question:", question);
+  console.log("role", req.user.role);
 
   if (!question) {
     return res.status(404).json({ error: "Question not found" });
@@ -689,22 +733,106 @@ const hideAC = asyncHandler(async (req, res) => {
     )
     .then((data) => {
       console.log("hid comment");
-      res.json({data,message});
+      res.json({ data, message });
     })
     .catch((err) => res.status(404).json({ message: "Error occured while hiding the comment" }));
 });
 
-//get a single question by ID
-const getQuestionById = asyncHandler(async (req, res) => {
-  try {
-    const question = await questionModel.findById(req.params.id);
-    if (!question) {
-      return res.status(404).json({ error: "Question not found" });
-    }
-    res.json(question);
-  } catch (err) {
-    res.status(400).json({ message: "Error occured while fetching the question" });
+const editA = asyncHandler(async (req, res) => {
+  const body = req.body["answers"];
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(body.user_ID)
+    .exec();
+  if (!um) {
+    res.status(404).json({ message: "User not found" });
   }
+  if (!body.body) {
+    res.status(404).json({ message: "Please Enter Text" });
+  }
+  const message = "Successfully edited the answer";
+  await questionModel
+    .updateOne(
+      { _id: req.params.qid },
+      {
+        $set: {
+          "answers.$[j].body": body.body,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "j._id": req.params.aid,
+          },
+        ],
+      }
+    )
+    .then((data) => res.json({ data, message }))
+    .catch((err) => res.status(404).json({ message: "Error occured while editing the answer" }));
+});
+const editC = asyncHandler(async (req, res) => {
+  const body = req.body["answers"]["comments"];
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(body.user_ID)
+    .exec();
+  if (!um) {
+    res.status(404).json({ message: "User not found" });
+  }
+  if (!body.body) {
+    res.status(404).json({ message: "Please Enter Text" });
+  }
+  const message = "Successfully edited the comment";
+  await questionModel
+    .updateOne(
+      { _id: req.params.qid },
+      {
+        $set: {
+          "answers.$[j].comments.$[i].body": body.body,
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "j._id": req.params.aid,
+          },
+          {
+            "i._id": req.params.cid,
+          },
+        ],
+      }
+    )
+    .then((data) => res.json({ data, message }))
+    .catch((err) => res.status(404).json({ message: "Error occured while editing the comment" }));
+});
+
+const editQ = asyncHandler(async (req, res) => {
+  const body = req.body["questions"];
+  const um = await userModel
+    .findOne()
+    .where("user_ID")
+    .equals(body.user_ID)
+    .exec();
+  if (!um) {
+    res.status(404).json({ message: "User not found" });
+  }
+  if (!body.body) {
+    res.status(404).json({ message: "Please Enter Text" });
+  }
+  const message = "Successfully edited the question";
+  await questionModel
+    .updateOne(
+      { _id: req.params.qid },
+      {
+        $set: {
+          body: body.body,
+        },
+      }
+    )
+    .then((data) => res.json({ data, message }))
+    .catch((err) => res.status(404).json({ message: "Error occured while editing the question" }));
 });
 
 //exporting
@@ -724,5 +852,7 @@ module.exports = {
   hideA,
   hideC,
   hideAC,
-  getQuestionById,
+  editA,
+  editC,
+  editQ,
 };

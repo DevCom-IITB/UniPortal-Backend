@@ -39,6 +39,9 @@ app.use(cookieParser());
 app.use(prefix + "/uploads", express.static("./uploads"));
 //All routing goes here
 app.use(prefix + "/user", require("./api/routes/userRouters"));
+app.use(prefix + "/notification", require("./api/routes/notificationRouters"));
+app.use(prefix + "/taggedQ", require("./api/routes/tagRouters"));
+
 
 // app.use(authenticateToken);
 app.use(
@@ -52,8 +55,11 @@ app.use(
   express.static("uploads")
 );
 
-app.use(prefix + "/search", require("./api/routes/searchRouters"));
-app.use(prefix + "/translate", require("./api/routes/translateRouters"));
+//for future versions
+//app.use(prefix + "/search", require("./api/routes/elasticRouters"));
+
+//WebSocket Server
+require('./webSocket/websocketServer')
 
 // global error handler that returns JSON for any unhandled errors
 app.use((err, req, res, next) => {

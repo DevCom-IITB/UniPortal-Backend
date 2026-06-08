@@ -2,19 +2,17 @@ const asyncHandler = require("express-async-handler");//Handles async operations
 //Without async operations, if one student uploaded 10 large images, every other student at IITB would experience a "frozen" website until those images were finished processing.
 
 const dotenv = require("dotenv");
-//To use the variables stored in the .env file
-//This imports the dotenv library, which is a popular Node.js module used to load environment variables.
-//It keeps your secrets safe. You can share your code on GitHub without sharing your database passwords, as long as you don't upload the .env file itself.
-
-
-dotenv.config();//Loads variables from .env
+const axios = require('axios');
+dotenv.config();
 const infopostModel = require("../models/infopostModel");
 const imageModel = require("../models/imageModel");
+const userModel = require("../models/userModel");
+const { createNotification } = require("../controllers/notificationController");
 const path = require("path");
-//When you deal with file uploads (like student questions or SMPC infoposts), you encounter different operating systems (Windows uses \, while Linux/macOS uses /). The path module ensures your code works perfectly on any server.
 
 // multer middleware for handling uploading images
 const multer = require("multer");
+const ROLES_LIST = require("../../config/roles_list");
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, "../html/uploads");
@@ -53,18 +51,29 @@ const postinfopost = asyncHandler(async (req, res) => {
           savedImages.push(image.filename);
         }
       }
+      //defining tag for the question
+      const query = req.body.body;
+      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
+      const classified_tag = tag_response.data;
       const infopost = new infopostModel({
         body: req.body.body,
         url: req.body.urls,
         images: savedImages,
+        tag: classified_tag
       });
+      const savedInfopost = await infopost.save();
+      // Notify all students about the new infopost
+      const allStudents = await userModel.find({ role: ROLES_LIST.STUDENT });
+      const studentIds = allStudents.map(student => student.user_ID);
+      createNotification(1, studentIds, savedInfopost._id, req.body.body, false);
+
+
+
       const message = "Infopost posted successfully";
-      await infopost.save().then((data) => {
-        res.json({ data, message });
-      });
+      res.json({ data: savedInfopost, message });
     });
   } catch (err) {
-    res.status(400).res.json({ message: " An error occured while posting the infopost" });
+    res.status(400).json({ message: "An error occurred while posting the infopost" });
   }
 });
 
