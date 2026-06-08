@@ -94,8 +94,16 @@ const postQuestion = asyncHandler(async (req, res) => {
       const message = "Question posted successfully";
       //defining tag for the question
       const query = body.body;
-      const tag_response = await axios.post('http://127.0.0.1:5001/newbee/nlp/tag', { query });
-      const classified_tag = tag_response.data;
+      let classified_tag = "General"; // Default tag
+
+      try {
+        const nlpBaseUrl = process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001";
+        const tag_response = await axios.post(`${nlpBaseUrl}/tag`, { query });
+        classified_tag = tag_response.data;
+      } catch (nlpError) {
+        console.error("NLP Tagging Service Error:", nlpError.message);
+      }
+
       //creating question
       await questionModel
         .create({
@@ -104,7 +112,7 @@ const postQuestion = asyncHandler(async (req, res) => {
           body: body.body,
           images: savedImages,
           _id: qID,
-          tag: classified_tag,
+          tag: body.tag || "",
           //reason I didn't initialise comment or answer is because it used to create a default answer and comment
           is_Anonymous: is_Anonymous,
         })
@@ -120,9 +128,14 @@ const postQuestion = asyncHandler(async (req, res) => {
           await um.save();
 
           //creating tfidf embeddings
-          axios.get('http://127.0.0.1:5001/newbee/nlp/embed').then(
-            console.log('created embeddings')
-          )
+          try {
+            const nlpBaseUrl = process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001";
+            axios.get(`${nlpBaseUrl}/embed`).then(
+              console.log('created embeddings')
+            ).catch(err => console.error("NLP Embedding Error:", err.message));
+          } catch (embedError) {
+            console.error("NLP Embedding trigger error:", embedError.message);
+          }
 
           res.json({ data, message });
         });
@@ -692,7 +705,7 @@ const hideC = asyncHandler(async (req, res) => {
 const hideAC = asyncHandler(async (req, res) => {
   const question = await questionModel.findById(req.params.qid);
   console.log("question:", question);
-  console.log("role", req.user.role); 
+  console.log("role", req.user.role);
 
   if (!question) {
     return res.status(404).json({ error: "Question not found" });
@@ -738,101 +751,17 @@ const hideAC = asyncHandler(async (req, res) => {
     .catch((err) => res.status(404).json({ message: "Error occured while hiding the comment" }));
 });
 
-const editA = asyncHandler(async (req, res) => {
-  const body = req.body["answers"];
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(body.user_ID)
-    .exec();
-  if (!um) {
-    res.status(404).json({ message: "User not found" });
+//get a single question by ID
+const getQuestionById = asyncHandler(async (req, res) => {
+  try {
+    const question = await questionModel.findById(req.params.id);
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+    res.json(question);
+  } catch (err) {
+    res.status(400).json({ message: "Error occured while fetching the question" });
   }
-  if (!body.body) {
-    res.status(404).json({ message: "Please Enter Text" });
-  }
-  const message = "Successfully edited the answer";
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $set: {
-          "answers.$[j].body": body.body,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "j._id": req.params.aid,
-          },
-        ],
-      }
-    )
-    .then((data) => res.json({ data, message }))
-    .catch((err) => res.status(404).json({ message: "Error occured while editing the answer" }));
-});
-const editC = asyncHandler(async (req, res) => {
-  const body = req.body["answers"]["comments"];
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(body.user_ID)
-    .exec();
-  if (!um) {
-    res.status(404).json({ message: "User not found" });
-  }
-  if (!body.body) {
-    res.status(404).json({ message: "Please Enter Text" });
-  }
-  const message = "Successfully edited the comment";
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $set: {
-          "answers.$[j].comments.$[i].body": body.body,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "j._id": req.params.aid,
-          },
-          {
-            "i._id": req.params.cid,
-          },
-        ],
-      }
-    )
-    .then((data) => res.json({ data, message }))
-    .catch((err) => res.status(404).json({ message: "Error occured while editing the comment" }));
-});
-
-const editQ = asyncHandler(async (req, res) => {
-  const body = req.body["questions"];
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(body.user_ID)
-    .exec();
-  if (!um) {
-    res.status(404).json({ message: "User not found" });
-  }
-  if (!body.body) {
-    res.status(404).json({ message: "Please Enter Text" });
-  }
-  const message = "Successfully edited the question";
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $set: {
-          body: body.body,
-        },
-      }
-    )
-    .then((data) => res.json({ data, message }))
-    .catch((err) => res.status(404).json({ message: "Error occured while editing the question" }));
 });
 
 //exporting
@@ -852,7 +781,5 @@ module.exports = {
   hideA,
   hideC,
   hideAC,
-  editA,
-  editC,
-  editQ,
+  getQuestionById,
 };

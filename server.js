@@ -1,11 +1,19 @@
 const express = require("express");
+const dotenv = require("dotenv");
+const bcrypt = require("bcryptjs");
 const connectDB = require("./config/db");
-const port = process.env.PORT || 5000; // this line is used to set the port number to 5000 if the PORT environment variable is not set. https://www.npmjs.com/package/dotenv
+const userModel = require("./api/models/userModel");
+const ROLES_LIST = require("./config/roles_list");
+
+dotenv.config();
+const port = process.env.PORT || 5000; // this line is used to set the port number to 5000 if the PORT environment variable is not set.
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
-connectDB();
 const app = express();
-const prefix = process.env.NODE_ENV == "DEV" ? "" : "/newbee/api";
+const rawNodeEnv = process.env.NODE_ENV || "";
+const nodeEnv = rawNodeEnv.replace(/^['"]|['"]$/g, "");
+const isDev = nodeEnv === "development" || nodeEnv === "DEV";
+const prefix = isDev ? "" : "/newbee/api";
 
 // Enable CORS
 app.use((req, res, next) => {
@@ -31,8 +39,8 @@ app.use(cookieParser());
 app.use(prefix + "/uploads", express.static("./uploads"));
 //All routing goes here
 app.use(prefix + "/user", require("./api/routes/userRouters"));
-app.use(prefix+ "/notification", require("./api/routes/notificationRouters"));
-app.use(prefix+ "/taggedQ", require("./api/routes/tagRouters"));
+app.use(prefix + "/notification", require("./api/routes/notificationRouters"));
+app.use(prefix + "/taggedQ", require("./api/routes/tagRouters"));
 
 
 // app.use(authenticateToken);
@@ -50,12 +58,44 @@ app.use(
 //for future versions
 //app.use(prefix + "/search", require("./api/routes/elasticRouters"));
 
-//WebSocket Server
-require('./webSocket/websocketServer')
+// global error handler that returns JSON for any unhandled errors
+app.use((err, req, res, next) => {
+  console.error(err.stack || err);
+  res.status(err.status || 500).json({
+    message: err.message || "Internal Server Error",
+  });
+});
 
-//listening to port 5000 by default
-app.listen(port, () =>
-  console.log(
-    `Server running on port ${port}, On ${prefix}, In env ${process.env.NODE_ENV}`
-  )
-);
+const ensureDefaultSMPUser = async () => {
+  try {
+    const existingSmpUser = await userModel.findOne({ user_ID: "smp" });
+    if (existingSmpUser) {
+      console.log("Default SMP user already exists.");
+      return;
+    }
+
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash("smp", salt);
+    await userModel.create({
+      name: "SMP User",
+      user_ID: "smp",
+      password: hashedPassword,
+      role: ROLES_LIST.SMP,
+    });
+    console.log("Created default SMP user: user_ID=smp, password=smp");
+  } catch (error) {
+    console.error("Error creating default SMP user:", error);
+  }
+};
+
+const startServer = async () => {
+  await connectDB();
+  await ensureDefaultSMPUser();
+  app.listen(port, () =>
+    console.log(
+      `Server running on port ${port}, On ${prefix}, In env ${process.env.NODE_ENV}. NLP Service URL: ${process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001"}`
+    )
+  );
+};
+
+startServer();
