@@ -50,11 +50,11 @@ const searchQuestions = asyncHandler(async (req, res) => {
 
   const fuse = new Fuse(allDocs, {
     keys: ["body"],
-    threshold: 0.45,
+    threshold: 0.15,
     includeScore: true,
     ignoreLocation: true,
-    minMatchCharLength: 2,
-    distance: 200,
+    minMatchCharLength: 3,
+    distance: 50,
   });
 
   const hits = fuse.search(query, { limit });
