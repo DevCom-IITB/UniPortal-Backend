@@ -12,13 +12,16 @@ const path = require("path");
 const multer = require("multer");
 const ROLES_LIST = require("../../config/roles_list");
 const storage = multer.diskStorage({
+  
   destination: function (req, file, cb) {
-    cb(null, "../html/uploads");
+  cb(null, path.join(__dirname, "../../uploads"));
   },
+
   filename: function (req, file, cb) {
+    console.log("FILE OBJECT:", file);
     cb(
       null,
-      `${file.filename}_${Date.now()}${path.extname(file.originalname)}`
+      `${file.originalname.split('.')[0]}_${Date.now()}${path.extname(file.originalname)}`
     );
   },
 });
