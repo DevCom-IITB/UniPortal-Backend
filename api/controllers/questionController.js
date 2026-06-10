@@ -9,9 +9,10 @@ const path = require("path");
 // multer middleware for handling uploading images
 const multer = require("multer");
 const storage = multer.diskStorage({
-  destination: function (_req, _file, cb) {
-    cb(null, path.join(__dirname, "../../../html/uploads"));
+  destination: function (req, file, cb) {
+  cb(null, path.join(__dirname, "../../uploads"));
   },
+
   filename: function (_req, file, cb) {
     cb(
       null,
@@ -38,6 +39,7 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024,
   },
 });
+
 
 // import the models
 const questionModel = require("../models/questionModel");
