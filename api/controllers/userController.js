@@ -62,8 +62,18 @@ const loginUser = asyncHandler(async (req, res) => {
   console.log("COOKIE from previous session %s", cookies);
   //get details from req
   const { user_ID, password } = req.body;
+  console.log("Login attempt for user_ID:", user_ID);
+  
   //find the student from the database
   const foundUser = await userModel.findOne({ user_ID });
+  
+  if (!foundUser) {
+    console.log("User not found in database:", user_ID);
+  } else {
+    const isMatch = await bcrypt.compare(password, foundUser.password);
+    console.log("User found. Password match:", isMatch);
+  }
+
   //if no user found throw error
   if (!(foundUser && (await bcrypt.compare(password, foundUser.password)))) {
     return res.status(401).json({ message: "Invalid Credentials" });

@@ -3,6 +3,7 @@ const mongoose = require("mongoose");//This imports the Mongoose library, which 
 //schema for infopost
 const infopostSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
+  title: { type: String, default: "" },
   body: { type: String, required: true },
   urls: { type: String, default: "" },
   //Allows the post to include external links (like registration forms or official IITB websites). It defaults to an empty string if no link is provided

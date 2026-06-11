@@ -69,6 +69,7 @@ const postinfopost = asyncHandler(async (req, res) => {
       }
 
       const infopost = new infopostModel({
+        title: req.body.title,
         body: req.body.body,
         url: req.body.urls,
         images: savedImages,
@@ -147,11 +148,12 @@ const editinfopost = asyncHandler(async (req, res) => {
     }
     console.log("found infopost");
     const body = req.body.body;
+    const title = req.body.title;
     console.log("req: ", req);
-    console.log("body: ", body);
+    console.log("body: ", body, "title: ", title);
     const message = "Successfully edited the infopost";
     await infopostModel
-      .updateOne({ _id: req.params.id }, { $set: { body: body } })
+      .updateOne({ _id: req.params.id }, { $set: { body: body, title: title } })
       .then((data) => res.json({ data, message }));
   } catch (err) {
     res.status(400).res.json({ message: "An error occured while editing the infopost" });

@@ -35,13 +35,11 @@ const QuestionSchema = mongoose.Schema({
   status: { type: Boolean, default: false },
   upvotes: { type: Number, default: 0 },
   asked_At: { type: Date, default: Date.now },
-  tag: { type: String, default: "" },
-  //images: [{ type: mongoose.Schema.Types.ObjectId, ref: imageModel }],
+  tag: { type: String, default: "General" },
   images: [{ type: String }],
   answers: [AnswerSchema],
   comments: [commentSchema],
   verified: { type: Boolean, default: false },
-  tag: { type: String, required: false },
   is_Anonymous: { type: Boolean, default: false },
 
 });
