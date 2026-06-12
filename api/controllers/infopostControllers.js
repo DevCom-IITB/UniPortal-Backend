@@ -154,10 +154,25 @@ const editinfopost = asyncHandler(async (req, res) => {
   }
 });
 
+//a function to delete infopost
+const deleteinfopost = asyncHandler(async (req, res) => {
+  try {
+    const infopost = await infopostModel.findById(req.params.id);
+    if (!infopost) {
+      return res.status(404).json({ message: "infopost not found" });
+    }
+    await infopostModel.deleteOne({ _id: req.params.id });
+    res.json({ message: "Successfully deleted the infopost" });
+  } catch (err) {
+    res.status(400).json({ message: "An error occured while deleting the infopost" });
+  }
+});
+
 module.exports = {
   postinfopost,
   getinfopostAd,
   getinfopostStu,
   hideinfopost,
   editinfopost,
+  deleteinfopost,
 };
