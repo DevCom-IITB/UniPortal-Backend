@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 
 const infopostSchema = mongoose.Schema({
   id: mongoose.Schema.Types.ObjectId,
+  title: { type: String, required: false },
   body: { type: String, required: true },
   urls: { type: String, default: "" },
   hidden: { type: Boolean, default: false },
