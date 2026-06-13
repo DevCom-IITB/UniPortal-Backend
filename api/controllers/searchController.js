@@ -34,7 +34,7 @@ const searchQuestions = asyncHandler(async (req, res) => {
 
   const infopostsPromise = infopostModel
     .find({ hidden: false })
-    .select("body asked_At _id")
+    .select("title body asked_At _id")
     .sort({ asked_At: -1 })
     .lean();
 
@@ -50,11 +50,11 @@ const searchQuestions = asyncHandler(async (req, res) => {
 
   const fuse = new Fuse(allDocs, {
     keys: ["body"],
-    threshold: 0.15,
+    threshold: 0.45,
     includeScore: true,
     ignoreLocation: true,
-    minMatchCharLength: 3,
-    distance: 50,
+    minMatchCharLength: 2,
+    distance: 200,
   });
 
   const hits = fuse.search(query, { limit });
@@ -62,6 +62,7 @@ const searchQuestions = asyncHandler(async (req, res) => {
   const results = hits
     .map((hit) => ({
       _id: hit.item._id,
+      title: hit.item.title,
       body: hit.item.body,
       user_Name: hit.item.type === "infopost" ? "SMPC" : hit.item.user_Name,
       asked_At: hit.item.asked_At,
