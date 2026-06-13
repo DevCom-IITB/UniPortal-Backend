@@ -22,6 +22,9 @@ const {
   editA,
   editQ,
   editC,
+  deleteQ,
+  deleteA,
+  getQuestionById,
 } = require("../controllers/questionController");
 // const { uploadImage } = require("../controllers/imageController");
 
@@ -116,5 +119,25 @@ router
 router
   .route("/editC/:qid/:aid/:cid")
   .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP), editC);
+
+router
+  .route("/deleteQ/:qid")
+  .delete(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP), deleteQ);
+
+router
+  .route("/deleteA/:qid/:aid")
+  .delete(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP, ROLES_LIST.ISMP), deleteA);
+
+router
+  .route("/:id")
+  .get(
+    verifyRoles(
+      ROLES_LIST.Admin,
+      ROLES_LIST.SMP,
+      ROLES_LIST.STUDENT,
+      ROLES_LIST.ISMP
+    ),
+    getQuestionById
+  );
 
 module.exports = router;

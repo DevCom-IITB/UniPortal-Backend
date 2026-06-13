@@ -863,6 +863,38 @@ const getQuestionById = asyncHandler(async (req, res) => {
   }
 });
 
+// Delete a question entirely
+const deleteQ = asyncHandler(async (req, res) => {
+  try {
+    const question = await questionModel.findByIdAndDelete(req.params.qid);
+    if (!question) {
+      return res.status(404).json({ error: "Question not found" });
+    }
+    // Note: We might also want to clean up user references in asked_questions etc,
+    // but for now, hard delete the document.
+    res.json({ message: "Question deleted successfully" });
+  } catch (err) {
+    res.status(400).json({ message: "Error occured while deleting the question" });
+  }
+});
+
+// Delete an answer entirely
+const deleteA = asyncHandler(async (req, res) => {
+  try {
+    const data = await questionModel.updateOne(
+      { _id: req.params.qid },
+      {
+        $pull: {
+          answers: { _id: req.params.aid },
+        },
+      }
+    );
+    res.json({ message: "Answer deleted successfully", data });
+  } catch (err) {
+    res.status(400).json({ message: "Error occured while deleting the answer" });
+  }
+});
+
 //exporting
 module.exports = {
   postQuestion,
@@ -883,5 +915,7 @@ module.exports = {
   editA,
   editC,
   editQ,
+  deleteQ,
+  deleteA,
   getQuestionById,
 };
