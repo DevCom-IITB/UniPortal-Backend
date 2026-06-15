@@ -8,6 +8,7 @@ const {
   getinfopostStu,
   hideinfopost,
   editinfopost,
+  deleteinfopost,
 } = require("../controllers/infopostControllers");
 
 router
@@ -25,5 +26,8 @@ router
 router
   .route("/edit/:id")
   .patch(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP), editinfopost);
+router
+  .route("/delete/:id")
+  .delete(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.SMP), deleteinfopost);
 
 module.exports = router;

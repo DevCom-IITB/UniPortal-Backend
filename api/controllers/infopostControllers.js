@@ -65,6 +65,7 @@ const postinfopost = asyncHandler(async (req, res) => {
       }
 
       const infopost = new infopostModel({
+        title: req.body.title,
         body: req.body.body,
         url: req.body.urls,
         images: savedImages,
@@ -141,14 +142,29 @@ const editinfopost = asyncHandler(async (req, res) => {
     }
     console.log("found infopost");
     const body = req.body.body;
+    const title = req.body.title;
     console.log("req: ", req);
     console.log("body: ", body);
     const message = "Successfully edited the infopost";
     await infopostModel
-      .updateOne({ _id: req.params.id }, { $set: { body: body } })
+      .updateOne({ _id: req.params.id }, { $set: { title: title, body: body } })
       .then((data) => res.json({ data, message }));
   } catch (err) {
     res.status(400).res.json({ message: "An error occured while editing the infopost" });
+  }
+});
+
+//a function to delete infopost
+const deleteinfopost = asyncHandler(async (req, res) => {
+  try {
+    const infopost = await infopostModel.findById(req.params.id);
+    if (!infopost) {
+      return res.status(404).json({ message: "infopost not found" });
+    }
+    await infopostModel.deleteOne({ _id: req.params.id });
+    res.json({ message: "Successfully deleted the infopost" });
+  } catch (err) {
+    res.status(400).json({ message: "An error occured while deleting the infopost" });
   }
 });
 
@@ -158,4 +174,5 @@ module.exports = {
   getinfopostStu,
   hideinfopost,
   editinfopost,
+  deleteinfopost,
 };
