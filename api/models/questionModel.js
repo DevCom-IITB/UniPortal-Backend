@@ -22,6 +22,7 @@ const AnswerSchema = mongoose.Schema({
   hidden: { type: Boolean, default: false },
   comments: [commentSchema],
   verified: { type: Boolean, default: false },
+  edited: { type: Boolean, default: false },
   asked_At: { type: Date, default: Date.now },
 });
 

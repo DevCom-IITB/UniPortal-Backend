@@ -322,7 +322,13 @@ const answerQ = asyncHandler(async (req, res) => {
         }
       }
 
-      const body = req.body["answers"];
+      let body = req.body["answers"];
+      if (!body) {
+        body = {
+          user_ID: req.body["answers[user_ID]"],
+          body: req.body["answers[body]"],
+        };
+      }
       console.log("body", body);
 
       const um = await userModel.findOne({ user_ID: body.user_ID });
@@ -764,6 +770,7 @@ const editA = asyncHandler(async (req, res) => {
       {
         $set: {
           "answers.$[j].body": body.body,
+          "answers.$[j].edited": true,
         },
       },
       {
