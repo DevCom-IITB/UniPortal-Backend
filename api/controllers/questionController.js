@@ -94,17 +94,8 @@ const postQuestion = asyncHandler(async (req, res) => {
       }
       console.log("user found", um);
       const message = "Question posted successfully";
-      //defining tag for the question
-      const query = body.body;
-      let classified_tag = "General"; // Default tag
-
-      try {
-        const nlpBaseUrl = process.env.NLP_SERVICE_URL || "http://127.0.0.1:5001";
-        const tag_response = await axios.post(`${nlpBaseUrl}/tag`, { query });
-        classified_tag = tag_response.data;
-      } catch (nlpError) {
-        console.error("NLP Tagging Service Error:", nlpError.message);
-      }
+      // Use the tag provided by the student, or default to General
+      let classified_tag = body.tag || "General";
 
       //creating question
       await questionModel
