@@ -22,7 +22,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
 
     if (!name || !user_ID || !password || !role) {
-      res.status(400).json({ message: "Please fill in all fields" });
+      return res.status(400).json({ message: "Please fill in all fields" });
     }
 
     // check if the user exists
