@@ -11,8 +11,11 @@ const authenticateToken = (req, res, next) => {
     if (err) {
       return res.sendStatus(403);
     }
-    req.user_ID = decoded.user_ID;
-    req.roles = decoded.roles;
+  // normalize token payload so downstream code sees consistent fields
+  req.user_ID = decoded.user_ID;
+  req.role = decoded.role;
+  // ensure roles is an array when possible for verifyRoles checks
+  req.roles = decoded.roles || (decoded.role ? [decoded.role] : []);
     next();
   });
 };

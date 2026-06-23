@@ -101,11 +101,12 @@ const loginUser = asyncHandler(async (req, res) => {
       }
       res.clearCookie("jwt", {
         httpOnly: true,
-        sameSite: "None",
-        secure: true,
+        sameSite: "none",
+        secure: process.env.NODE_ENV === "production",
       });
     }
-    foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+  // Enforce single-session: replace stored refresh tokens with the new one so older cookies become invalid.
+  foundUser.refreshToken = [newRefreshToken];
     await foundUser
       .save()
       .catch((err) => console.log("Couldnt save refresh token" + err));
@@ -114,7 +115,8 @@ const loginUser = asyncHandler(async (req, res) => {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000,
       sameSite: "none",
-      secure: true,
+      // only require secure in production to avoid localhost/HTTP issues
+      secure: process.env.NODE_ENV === "production",
     });
     res.json({
       accessToken: accessToken,
@@ -188,7 +190,11 @@ const refreshUser = asyncHandler(async (req, res) => {
   if (!cookies?.jwt)
     return res.status(401).json({ message: "No Refresh Token Found" });
   const refreshToken = cookies.jwt; //if jwt in cookie exists we extract the refresh token from it
-  res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true }); //after extarcting the refresh token we remove it
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+  }); //after extracting the refresh token we remove it
 
   //we find the user who has that particular refresh token
   const foundUser = await userModel.findOne({ refreshToken });
@@ -255,7 +261,7 @@ const refreshUser = asyncHandler(async (req, res) => {
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000,
         sameSite: "none",
-        secure: true,
+        secure: process.env.NODE_ENV === "production",
       });
       console.log("Successful regeneration of tokens");
       res.json({
@@ -292,7 +298,11 @@ const logoutUser = asyncHandler(async (req, res) => {
   ); //basically we keep all the refresh tokens of other devices except our own one
   await foundUser.save();
 
-  res.clearCookie("jwt", { httpOnly: true }); ///add secure:true during deployment
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: "none",
+    secure: process.env.NODE_ENV === "production",
+  });
   console.log("works");
   res.json({ message: "Cookie removed and logged out successfully" });
 });
