@@ -751,38 +751,81 @@ const hideAC = asyncHandler(async (req, res) => {
 });
 
 const editA = asyncHandler(async (req, res) => {
-  const body = req.body["answers"];
-  const um = await userModel
-    .findOne()
-    .where("user_ID")
-    .equals(body.user_ID)
-    .exec();
-  if (!um) {
-    res.status(404).json({ message: "User not found" });
-  }
-  if (!body.body) {
-    res.status(404).json({ message: "Please Enter Text" });
-  }
-  const message = "Successfully edited the answer";
-  await questionModel
-    .updateOne(
-      { _id: req.params.qid },
-      {
-        $set: {
-          "answers.$[j].body": body.body,
-          "answers.$[j].edited": true,
-        },
-      },
-      {
-        arrayFilters: [
-          {
-            "j._id": req.params.aid,
-          },
-        ],
+  try {
+    upload.array("images", 10)(req, res, async function (err) {
+      if (err) {
+        console.log(err);
+        return res
+          .status(500)
+          .json({ error: "An error occurred while uploading the image" });
       }
-    )
-    .then((data) => res.json({ data, message }))
-    .catch((err) => res.status(404).json({ message: "Error occured while editing the answer" }));
+
+      // Process uploaded images
+      const images = req.files;
+      const savedImages = [];
+      if (images && images.length > 0) {
+        for (let i = 0; i < images.length; i++) {
+          const image = images[i];
+          const newImage = new imageModel({
+            filename: image.filename,
+            path: image.path,
+          });
+          await newImage.save();
+          savedImages.push(image.filename);
+        }
+      }
+
+      let body = req.body["answers"];
+      if (!body) {
+        body = {
+          user_ID: req.body["answers[user_ID]"],
+          body: req.body["answers[body]"],
+        };
+      }
+
+      const um = await userModel
+        .findOne()
+        .where("user_ID")
+        .equals(body.user_ID)
+        .exec();
+        
+      if (!um) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      if (!body.body) {
+        return res.status(404).json({ message: "Please Enter Text" });
+      }
+
+      const message = "Successfully edited the answer";
+      
+      // Update object
+      const updateObj = {
+        $set: {
+          "answers.$.body": body.body,
+          "answers.$.edited": true,
+        }
+      };
+
+      // If new images were uploaded, push them to the existing array
+      if (savedImages.length > 0) {
+        updateObj.$push = {
+          "answers.$.images": { $each: savedImages }
+        };
+      }
+
+      const question = await questionModel.findOneAndUpdate(
+        { _id: req.params.qid, "answers._id": req.params.aid },
+        updateObj,
+        {
+          new: true,
+        }
+      );
+      
+      return res.json({ data: question, message });
+    });
+  } catch (err) {
+    res.status(400).json({ message: "Error" });
+  }
 });
 const editC = asyncHandler(async (req, res) => {
   const body = req.body["answers"]["comments"];
