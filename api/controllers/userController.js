@@ -1,5 +1,6 @@
 const asyncHandler = require("express-async-handler"); //async-handler for handling errors in async functions
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto"); // built-in Node.js crypto for SHA-256
 const userModel = require("../models/userModel");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -32,8 +33,10 @@ const registerUser = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
     const message = "User registered Successfully"
+    // SHA-256 hash the password first (mirrors frontend hashing before bcrypt)
+    const sha256Password = crypto.createHash('sha256').update(password).digest('hex');
     const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(sha256Password, salt);
     const newUser = new userModel({
       name: name,
       user_ID: user_ID,

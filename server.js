@@ -71,21 +71,26 @@ require('./webSocket/websocketServer')
 
 const ensureDefaultSMPUser = async () => {
   try {
+    const crypto = require("crypto");
+    const sha256Password = crypto.createHash("sha256").update("smp").digest("hex");
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(sha256Password, salt);
+
     const existingSmpUser = await userModel.findOne({ user_ID: "smp" });
     if (existingSmpUser) {
-      console.log("Default SMP user already exists.");
+      existingSmpUser.password = hashedPassword;
+      await existingSmpUser.save();
+      console.log("Updated default SMP user with correct SHA-256 hash password.");
       return;
     }
 
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash("smp", salt);
     await userModel.create({
       name: "SMP User",
       user_ID: "smp",
       password: hashedPassword,
       role: ROLES_LIST.SMP,
     });
-    console.log("Created default SMP user: user_ID=smp, password=smp");
+    console.log("Created default SMP user: user_ID=smp, password=smp (SHA-256 hashed)");
   } catch (error) {
     console.error("Error creating default SMP user:", error);
   }
